@@ -41,6 +41,12 @@
         radial-gradient(circle at bottom, #120b33 0, transparent 55%),
         var(--bg);
       color: var(--text-main);
+      animation: bgFloat 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgFloat {
+      0% { background-position: 0 0, 0 0; }
+      100% { background-position: 20px 40px, -20px -40px; }
     }
 
     .shell {
@@ -57,6 +63,16 @@
       border: 1px solid rgba(255, 255, 255, 0.06);
       box-shadow: var(--shadow-soft);
       backdrop-filter: blur(18px);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s ease-out forwards;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .shell-header {
@@ -84,6 +100,12 @@
     .title-main span {
       letter-spacing: 0.35em;
       color: var(--text-main);
+      animation: glowPulse 2.4s ease-in-out infinite alternate;
+    }
+
+    @keyframes glowPulse {
+      0% { text-shadow: 0 0 4px var(--accent); }
+      100% { text-shadow: 0 0 14px var(--accent); }
     }
 
     .title-sub {
@@ -138,6 +160,14 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
+      opacity: 0;
+      animation: slideLeft 0.8s ease-out forwards;
+      animation-delay: 0.2s;
+    }
+
+    @keyframes slideLeft {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
     }
 
     .panel-heading {
@@ -191,7 +221,7 @@
     }
 
     .btn-primary:hover {
-      transform: translateY(-1px);
+      transform: translateY(-2px);
       box-shadow: 0 18px 40px rgba(79, 70, 229, 0.7);
     }
 
@@ -236,13 +266,23 @@
       flex-direction: column;
       gap: 10px;
       font-size: 0.8rem;
+      font-family: var(--mono);
+      color: #4ade80;
+      opacity: 0;
+      animation: slideRight 0.8s ease-out forwards;
+      animation-delay: 0.45s;
+    }
+
+    @keyframes slideRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
     }
 
     .panel-right-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      color: var(--text-muted);
+      color: #4ade80;
     }
 
     .panel-right-header span {
@@ -253,18 +293,44 @@
     .log-line {
       font-family: var(--mono);
       font-size: 0.75rem;
-      color: var(--text-muted);
       display: flex;
       gap: 6px;
       align-items: flex-start;
+      opacity: 0;
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     .log-prefix {
       color: #4ade80;
+      flex-shrink: 0;
     }
 
     .log-highlight {
-      color: var(--accent);
+      color: #bbf7d0;
+    }
+
+    .log-line:nth-child(2) { animation: typeLine 1.2s steps(40) forwards; animation-delay: 0.7s; }
+    .log-line:nth-child(3) { animation: typeLine 1.2s steps(40) forwards; animation-delay: 1.4s; }
+    .log-line:nth-child(4) { animation: typeLine 1.2s steps(40) forwards; animation-delay: 2.1s; }
+
+    @keyframes typeLine {
+      from { opacity: 1; width: 0; }
+      to { opacity: 1; width: 100%; }
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: #4ade80;
+      margin-left: 1px;
+      animation: blink 0.9s steps(1) infinite;
+      animation-delay: 2.7s;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
     }
 
     .footer {
@@ -275,6 +341,9 @@
       font-size: 0.7rem;
       color: var(--text-muted);
       gap: 10px;
+      opacity: 0;
+      animation: fadeUp 1s ease-out forwards;
+      animation-delay: 2.6s;
     }
 
     .footer a {
@@ -342,7 +411,7 @@
         </div>
         <div class="log-line">
           <span class="log-prefix">[OK]</span>
-          <span>Core systems online · <span class="log-highlight">gx://gx</span></span>
+          <span>Core systems online · <span class="log-highlight">gx://setup</span></span>
         </div>
         <div class="log-line">
           <span class="log-prefix">[OK]</span>
@@ -352,8 +421,31 @@
           <span class="log-prefix">[→]</span>
           <span>Awaiting user input · <span class="log-highlight">press “Play”</span></span>
         </div>
+        <div class="cursor"></div>
       </aside>
     </section>
+
+    <footer class="footer">
+      <span>Only one star shines the brightest.</span>
+      <span>Crafted for Supernova GX</span>
+    </footer>
   </main>
+
+  <audio id="typeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-soft-ui-click-2577.mp3"></audio>
+  <script>
+    const typeSound = document.getElementById("typeSound");
+
+    function playTypeSound(delay) {
+      setTimeout(() => {
+        typeSound.currentTime = 0;
+        typeSound.play();
+      }, delay);
+    }
+
+    // Match the typing animation delays
+    playTypeSound(700);   // first log line
+    playTypeSound(1400);  // second log line
+    playTypeSound(2100);  // third log line
+  </script>
 </body>
 </html>
