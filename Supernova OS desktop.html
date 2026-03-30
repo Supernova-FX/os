@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Supernova OS — Desktop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+  :root {
+    --bg: #050712;
+    --accent: #7b5cff;
+    --text-main: #f5f5ff;
+    --text-muted: #9ca3c7;
+    --border: rgba(255,255,255,0.08);
+    --window-bg: rgba(10,12,25,0.85);
+    --window-blur: blur(14px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    height: 100vh;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top, #1b1f3b 0, transparent 55%),
+      radial-gradient(circle at bottom, #120b33 0, transparent 55%),
+      var(--bg);
+    animation: bgFloat 14s ease-in-out infinite alternate;
+    font-family: system-ui, sans-serif;
+    color: var(--text-main);
+  }
+
+  @keyframes bgFloat {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 30px 60px, -30px -60px; }
+  }
+
+  /* --- Dock --- */
+  .dock {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 22px;
+    padding: 14px 22px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+  }
+
+  .dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .dock-item:hover {
+    transform: scale(1.25);
+  }
+
+  .dock-item img {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .dock-item span {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* --- Windows --- */
+  .window {
+    position: absolute;
+    top: 120px;
+    left: 120px;
+    width: 420px;
+    height: 300px;
+    background: var(--window-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    backdrop-filter: var(--window-blur);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    display: none;
+  }
+
+  .titlebar {
+    height: 34px;
+    background: rgba(255,255,255,0.06);
+    border-bottom: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    cursor: grab;
+  }
+
+  .titlebar span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+  }
+
+  .controls div {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .min { background: #facc15; }
+  .max { background: #22c55e; }
+  .close { background: #ef4444; }
+
+  .window-content {
+    padding: 14px;
+    font-size: 0.9rem;
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0 0 12px 12px;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- GOOGLE WINDOW -->
+<div id="googleWin" class="window">
+  <div class="titlebar">
+    <span>Google</span>
+    <div class="controls">
+      <div class="min"></div>
+      <div class="max"></div>
+      <div class="close"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <iframe src="https://www.google.com"></iframe>
+  </div>
+</div>
+
+<!-- GAMES WINDOW -->
+<div id="gamesWin" class="window">
+  <div class="titlebar">
+    <span>Games</span>
+    <div class="controls">
+      <div class="min"></div>
+      <div class="max"></div>
+      <div class="close"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <iframe src="https://sites.google.com/view/supernova-gx/all?authuser=0"></iframe>
+  </div>
+</div>
+
+<!-- DOCK -->
+<div class="dock">
+  <div class="dock-item" onclick="openWindow('googleWin')">
+    <img src="https://www.google.com/favicon.ico">
+    <span>Google</span>
+  </div>
+
+  <div class="dock-item" onclick="openWindow('gamesWin')">
+    <img src="https://cdn-icons-png.flaticon.com/512/833/833472.png">
+    <span>Games</span>
+  </div>
+</div>
+
+<script>
+  function openWindow(id) {
+    const win = document.getElementById(id);
+    win.style.display = "block";
+    win.style.zIndex = Date.now();
+  }
+
+  // Window dragging
+  document.querySelectorAll('.window').forEach(win => {
+    const bar = win.querySelector('.titlebar');
+    let offsetX, offsetY, dragging = false;
+
+    bar.addEventListener('mousedown', e => {
+      dragging = true;
+      offsetX = e.clientX - win.offsetLeft;
+      offsetY = e.clientY - win.offsetTop;
+      bar.style.cursor = "grabbing";
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      win.style.left = (e.clientX - offsetX) + "px";
+      win.style.top = (e.clientY - offsetY) + "px";
+    });
+
+    document.addEventListener('mouseup', () => {
+      dragging = false;
+      bar.style.cursor = "grab";
+    });
+
+    // Controls
+    const [min, max, close] = win.querySelectorAll('.controls div');
+
+    min.onclick = () => win.style.display = "none";
+    close.onclick = () => win.style.display = "none";
+
+    max.onclick = () => {
+      if (win.classList.contains("maximized")) {
+        win.classList.remove("maximized");
+        win.style.width = "420px";
+        win.style.height = "300px";
+        win.style.left = "120px";
+        win.style.top = "120px";
+      } else {
+        win.classList.add("maximized");
+        win.style.left = "0";
+        win.style.top = "0";
+        win.style.width = "100vw";
+        win.style.height = "100vh";
+      }
+    };
+  });
+</script>
+
+</body>
+</html>
