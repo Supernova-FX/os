@@ -1,61 +1,359 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Xbox</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Supernova GX – Setup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050712;
+      --bg-accent: #0b1020;
+      --accent: #7b5cff;
+      --accent-soft: rgba(123, 92, 255, 0.25);
+      --text-main: #f5f5ff;
+      --text-muted: #9ca3c7;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --radius-lg: 18px;
+      --radius-md: 10px;
+      --shadow-soft: 0 24px 80px rgba(0, 0, 0, 0.7);
+      --transition-fast: 160ms ease-out;
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: var(--font-main);
+      background:
+        radial-gradient(circle at top, #1b1f3b 0, transparent 55%),
+        radial-gradient(circle at bottom, #120b33 0, transparent 55%),
+        var(--bg);
+      color: var(--text-main);
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 960px;
+      border-radius: 24px;
+      padding: 28px 28px 24px;
+      background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.04),
+          rgba(255, 255, 255, 0.01)
+        ),
+        rgba(5, 7, 18, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(18px);
+    }
+
+    .shell-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 16px;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-main {
+      letter-spacing: 0.6em;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .title-main span {
+      letter-spacing: 0.35em;
+      color: var(--text-main);
+    }
+
+    .title-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(5, 7, 18, 0.7);
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #4ade80;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+    }
+
+    .main-panel {
+      margin-top: 8px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      background: radial-gradient(circle at top left, var(--accent-soft), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.9), #050712);
+      padding: 22px 20px 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 720px) {
+      .main-panel {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .title-main {
+        letter-spacing: 0.35em;
+      }
+    }
+
+    .panel-left {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-heading {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-heading span {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .panel-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 32rem;
+    }
+
+    .panel-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--text-main);
+      transition: background var(--transition-fast), border-color var(--transition-fast),
+        transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .btn-primary {
+      background: radial-gradient(circle at top left, #a855f7, #6366f1);
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.55);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(79, 70, 229, 0.7);
+    }
+
+    .btn-ghost {
+      border-color: var(--border-subtle);
+      color: var(--text-muted);
+      background: rgba(5, 7, 18, 0.7);
+    }
+
+    .btn-ghost:hover {
+      border-color: rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .btn-icon {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .meta-tag {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(5, 7, 18, 0.7);
+    }
+
+    .panel-right {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: rgba(5, 7, 18, 0.85);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.8rem;
+    }
+
+    .panel-right-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+    }
+
+    .panel-right-header span {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+    }
+
+    .log-line {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+    }
+
+    .log-prefix {
+      color: #4ade80;
+    }
+
+    .log-highlight {
+      color: var(--accent);
+    }
+
+    .footer {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      gap: 10px;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      opacity: 0.9;
+    }
+
+    .footer a:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+  </style>
 </head>
-
 <body>
-  <header>
-    <h1>Xbox</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="xbox-core-x.html">Xbox Core X</a>
-      <a href="xbox-core-s.html">Xbox Core S</a>
-    </nav>
-  </header>
+  <main class="shell">
+    <header class="shell-header">
+      <div class="title-block">
+        <div class="title-main">
+          S&nbsp;u&nbsp;p&nbsp;e&nbsp;r&nbsp;n&nbsp;o&nbsp;v&nbsp;a
+          <span>&nbsp;&nbsp;G&nbsp;X</span>
+        </div>
+        <div class="panel-heading">
+          <span>Setup Terminal</span>
+        </div>
+      </div>
+      <div class="pill">
+        <span class="pill-dot"></span>
+        LIVE · BUILD 3.1.3.30
+      </div>
+    </header>
 
-  <main class="center-text">
+    <section class="main-panel">
+      <div class="panel-left">
+        <div class="panel-heading">
+          Welcome Back
+        </div>
+        <p class="panel-desc">
+          This is the first‑time setup for <strong>Supernova GX</strong>. We’ll prepare your environment,
+          link your modules, and enable the core systems that keep everything in orbit.
+        </p>
 
-    <h2>Xbox Consoles</h2>
-    <img class="divider" src="https://lh3.googleusercontent.com/sitesv/APaQ0SQNovHtSQ6Nhu1ja9wbs21_7hzfYY-fYA2RxQD2CW5gGIM4R7wc1X-dHSVPML8ZCby4pvusC7AXu5HR32Ne3OyJrf3mg57Rk0gxjkVFG-660zTxmKDCncNERqq_xp5KlFHmS4BNcjss01oKLdhxVqCIbsWb-P8CtJxmnkaHeGsD5KU7bmwURCKfdvXE_daExMFMK5K8jUGo85Cn46TzCmMuFnWZ3ISjWDDAswY=w1280">
+        <div class="panel-actions">
+          <button onclick="window.location.href='https://sites.google.com/view/supernova-gx/all?authuser=0';" class="btn btn-primary">
+            <span class="btn-icon">🚀</span>
+            <span>Play</span>
+          </button>
+          <button class="btn btn-ghost">
+            <span class="btn-icon">👁️</span>
+            <span>View configuration</span>
+          </button>
+        </div>
 
-    <h3>Xbox Core X</h3>
-    <p>The high‑end flagship Xbox with next-gen features.</p>
+        <div class="meta-row">
+          <div class="meta-tag">GX Core · v3.1.3.30</div>
+          <div class="meta-tag">Status: Stable</div>
+          <div class="meta-tag">Mode: Interactive</div>
+        </div>
+      </div>
 
-    <h3>Xbox Core S</h3>
-    <p>The best value next-gen console.</p>
-
-    <p>Welcome to a concept look at the next generation of Xbox: a system built on two powerful ideas.</p>
-
-    <p><strong>Hybrid Mode for the future of gaming</strong></p>
-    <p><strong>Legacy Mode for perfect backwards compatibility</strong></p>
-
-    <h2>Third‑Party Storefront Integration</h2>
-    <img class="divider" src="https://lh3.googleusercontent.com/sitesv/APaQ0SQNovHtSQ6Nhu1ja9wbs21_7hzfYY-fYA2RxQD2CW5gGIM4R7wc1X-dHSVPML8ZCby4pvusC7AXu5HR32Ne3OyJrf3mg57Rk0gxjkVFG-660zTxmKDCncNERqq_xp5KlFHmS4BNcjss01oKLdhxVqCIbsWb-P8CtJxmnkaHeGsD5KU7bmwURCKfdvXE_daExMFMK5K8jUGo85Cn46TzCmMuFnWZ3ISjWDDAswY=w1280">
-
-    <p>
-      Xbox Core X|S support a flexible ecosystem of digital storefronts through Hybrid Mode, letting players access
-      stores like Epic, Steam, and EA alongside the Microsoft Store. Purchases stay secure with system‑level entitlement
-      management, and all games appear in one unified library. Legacy Mode ensures full compatibility with past Xbox
-      titles, so that you are able to play your Xbox, Xbox 360, and Xbox One games.
-    </p>
-
-    <h2>25th Anniversary at Xbox</h2>
-    <img class="divider" src="https://lh3.googleusercontent.com/sitesv/APaQ0SQNovHtSQ6Nhu1ja9wbs21_7hzfYY-fYA2RxQD2CW5gGIM4R7wc1X-dHSVPML8ZCby4pvusC7AXu5HR32Ne3OyJrf3mg57Rk0gxjkVFG-660zTxmKDCncNERqq_xp5KlFHmS4BNcjss01oKLdhxVqCIbsWb-P8CtJxmnkaHeGsD5KU7bmwURCKfdvXE_daExMFMK5K8jUGo85Cn46TzCmMuFnWZ3ISjWDDAswY=w1280">
-
-    <p>
-      Celebrate 25 years of Xbox with a free copy of Forza Horizon 6 Premium Edition bundled with a purchase of a new
-      Xbox Core X|S — featuring the biggest, boldest Horizon yet. Explore Japan in over 550 cars and experience next-gen
-      racing. Available until August 1 2027.
-    </p>
-
+      <aside class="panel-right">
+        <div class="panel-right-header">
+          <span>setup.log</span>
+          <span>SUPERNOVA GX</span>
+        </div>
+        <div class="log-line">
+          <span class="log-prefix">[OK]</span>
+          <span>Core systems online · <span class="log-highlight">gx://gx</span></span>
+        </div>
+        <div class="log-line">
+          <span class="log-prefix">[OK]</span>
+          <span>Environment scan complete · 3 modules detected</span>
+        </div>
+        <div class="log-line">
+          <span class="log-prefix">[→]</span>
+          <span>Awaiting user input · <span class="log-highlight">press “Play”</span></span>
+        </div>
+      </aside>
+    </section>
   </main>
-
-  <footer>
-    <p>Concept site • Xbox 2027</p>
-  </footer>
 </body>
 </html>
