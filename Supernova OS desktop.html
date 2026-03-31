@@ -110,7 +110,7 @@
 
   .window.medium {
     width: 420px;
-    height: 280px;
+    height: 330px;
   }
 
   .titlebar {
@@ -186,6 +186,7 @@
     text-align: right;
     margin-bottom: 10px;
     font-family: "JetBrains Mono", ui-monospace;
+    color: white;
   }
 
   .calc-grid {
@@ -268,12 +269,62 @@
     text-align: center;
     transition: transform 0.12s ease-out, box-shadow 0.12s ease-out,
       border-color 0.12s ease-out;
+    color: var(--text-main);
   }
 
   .theme-card:hover {
     transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.45);
     border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(123,92,255,0.4);
+  }
+
+  /* Built‑in theme previews instead of external thumbnails */
+  .theme-preview {
+    width: 100%;
+    height: 52px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .theme-preview.nebula {
+    background-image:
+      radial-gradient(circle at 10% 0%, #7b5cff 0, transparent 55%),
+      radial-gradient(circle at 90% 100%, #ec4899 0, transparent 55%),
+      #050712;
+  }
+
+  .theme-preview.eclipse {
+    background-image:
+      radial-gradient(circle at 50% 0%, #f97316 0, transparent 55%),
+      radial-gradient(circle at 50% 100%, #111827 0, transparent 55%),
+      #020617;
+  }
+
+  .theme-preview.aurora {
+    background-image:
+      radial-gradient(circle at 0% 0%, #22c55e 0, transparent 55%),
+      radial-gradient(circle at 100% 100%, #0ea5e9 0, transparent 55%),
+      #001524;
+  }
+
+  .clear-cache-btn {
+    margin-top: 14px;
+    padding: 8px 10px;
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(127,29,29,0.9);
+    color: #fee2e2;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.12s ease-out, transform 0.12s ease-out;
+  }
+
+  .clear-cache-btn:hover {
+    background: rgba(185,28,28,0.95);
+    transform: translateY(-1px);
   }
 
   .notes-textarea {
@@ -288,12 +339,6 @@
     color: var(--text-main);
     font-size: 0.85rem;
     font-family: system-ui, sans-serif;
-  }
-
-  .notes-hint {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    margin-bottom: 4px;
   }
 
   body.theme-nebula {
@@ -324,7 +369,7 @@
       <div class="min"></div>
       <div class="max"></div>
     </div>
-    <span>Supernova FX</span>
+    <span>Games</span>
   </div>
   <div class="window-content">
     <iframe src="https://supernova-fx.github.io/"></iframe>
@@ -353,7 +398,7 @@
       <div class="min"></div>
       <div class="max"></div>
     </div>
-    <span>Calculator</span>
+    <span>Calc</span>
   </div>
   <div class="window-content">
     <input id="calcDisplay" class="calc-display" type="text" value="0" readonly />
@@ -392,7 +437,7 @@
       <div class="min"></div>
       <div class="max"></div>
     </div>
-    <span>Supernova Terminal</span>
+    <span>Terminal</span>
   </div>
   <div class="window-content">
     <div class="terminal-output" id="termOutput"></div>
@@ -414,10 +459,25 @@
   </div>
   <div class="window-content">
     <div class="theme-grid">
-      <div class="theme-card" data-theme="theme-nebula">Nebula</div>
-      <div class="theme-card" data-theme="theme-eclipse">Eclipse</div>
-      <div class="theme-card" data-theme="theme-aurora">Aurora</div>
+      <div class="theme-card" data-theme="theme-nebula">
+        <div class="theme-preview nebula"></div>
+        Nebula
+      </div>
+
+      <div class="theme-card" data-theme="theme-eclipse">
+        <div class="theme-preview eclipse"></div>
+        Eclipse
+      </div>
+
+      <div class="theme-card" data-theme="theme-aurora">
+        <div class="theme-preview aurora"></div>
+        Aurora
+      </div>
     </div>
+
+    <button class="clear-cache-btn" id="clearCacheBtn">
+      Clear local data (theme + notes)
+    </button>
   </div>
 </div>
 
@@ -436,40 +496,37 @@
 </div>
 
 <div class="dock">
-  <div class="dock-item" onclick="openWindow('fxWin')">
-    <img src="https://cdn-icons-png.flaticon.com/512/833/833472.png">
-    <span>FX</span>
-  </div>
 
-  <div class="dock-item" onclick="window.open('https://sites.google.com/view/supernova-gx/all?authuser=0', '_blank')">
-    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">
-    <span>GX</span>
+  <div class="dock-item" onclick="openWindow('fxWin')">
+    <img src="https://img.icons8.com/neon/512/controller.png">
+    <span>Games</span>
   </div>
 
   <div class="dock-item" onclick="openWindow('clockWin')">
-    <img src="https://cdn-icons-png.flaticon.com/512/1827/1827310.png">
+    <img src="https://img.icons8.com/neon/512/clock.png">
     <span>Clock</span>
   </div>
 
   <div class="dock-item" onclick="openWindow('calcWin')">
-    <img src="https://cdn-icons-png.flaticon.com/512/992/992700.png">
+    <img src="https://img.icons8.com/neon/512/calculator.png">
     <span>Calc</span>
   </div>
 
   <div class="dock-item" onclick="openWindow('termWin')">
-    <img src="https://cdn-icons-png.flaticon.com/512/565/565547.png">
+    <img src="https://img.icons8.com/neon/512/console.png">
     <span>Terminal</span>
   </div>
 
   <div class="dock-item" onclick="openWindow('themeWin')">
-    <img src="https://cdn-icons-png.flaticon.com/512/1829/1829586.png">
+    <img src="https://img.icons8.com/neon/512/color-palette.png">
     <span>Themes</span>
   </div>
 
   <div class="dock-item" onclick="openWindow('notesWin')">
-    <img src="https://cdn-icons-png.flaticon.com/512/1827/1827312.png">
+    <img src="https://img.icons8.com/neon/512/todo-list.png">
     <span>Notes</span>
   </div>
+
 </div>
 <script>
   function openWindow(id) {
@@ -512,7 +569,7 @@
         win.style.width = win.classList.contains('small') ? "320px" :
                           win.classList.contains('medium') ? "420px" : "520px";
         win.style.height = win.classList.contains('small') ? "220px" :
-                           win.classList.contains('medium') ? "280px" : "360px";
+                           win.classList.contains('medium') ? "330px" : "360px";
         win.style.left = "120px";
         win.style.top = "120px";
       } else {
@@ -688,6 +745,12 @@
   notesArea.addEventListener('input', () => {
     localStorage.setItem(NOTES_KEY, notesArea.value);
   });
+
+  document.getElementById("clearCacheBtn").onclick = () => {
+    localStorage.removeItem("supernova_theme");
+    localStorage.removeItem("supernova_os_notes");
+    location.reload();
+  };
 </script>
 
 </body>
