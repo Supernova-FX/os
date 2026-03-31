@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Supernova OS — Desktop</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
 <style>
   :root {
     --accent: #7b5cff;
@@ -69,6 +68,7 @@
   }
 
   .dock-item {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -92,7 +92,20 @@
     color: var(--text-muted);
   }
 
-  /* ⭐ Window + Animation */
+  .dock-item.playing img {
+    box-shadow: 0 0 18px var(--accent);
+  }
+
+  .dock-item.playing::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: absolute;
+    bottom: -4px;
+  }
+
   .window {
     position: absolute;
     top: 120px;
@@ -106,7 +119,6 @@
     box-shadow: 0 18px 40px rgba(0,0,0,0.45);
     display: none;
     overflow: hidden;
-
     opacity: 0;
     transform: scale(0.92);
     transition: opacity 0.25s ease, transform 0.25s ease;
@@ -167,6 +179,24 @@
     height: 100%;
     border: none;
     border-radius: 0 0 12px 12px;
+  }
+
+  .game-loader {
+    position: absolute;
+    inset: 0;
+    background: #020617;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "JetBrains Mono", monospace;
+    color: #22c55e;
+    font-size: 0.9rem;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.4; }
   }
 
   .clock-display {
@@ -336,12 +366,10 @@
   }
 </style>
 </head>
-
 <body class="theme-nebula">
 
 <div class="desktop-clock" id="desktopClock"></div>
 
-<!-- ⭐ GAMES WINDOW (now using local games.html) -->
 <div id="fxWin" class="window">
   <div class="titlebar">
     <div class="controls">
@@ -356,7 +384,6 @@
   </div>
 </div>
 
-<!-- CLOCK -->
 <div id="clockWin" class="window small">
   <div class="titlebar">
     <div class="controls">
@@ -372,7 +399,6 @@
   </div>
 </div>
 
-<!-- CALCULATOR -->
 <div id="calcWin" class="window medium">
   <div class="titlebar">
     <div class="controls">
@@ -412,7 +438,6 @@
   </div>
 </div>
 
-<!-- TERMINAL -->
 <div id="termWin" class="window">
   <div class="titlebar">
     <div class="controls">
@@ -431,7 +456,6 @@
   </div>
 </div>
 
-<!-- THEMES -->
 <div id="themeWin" class="window medium">
   <div class="titlebar">
     <div class="controls">
@@ -465,7 +489,6 @@
   </div>
 </div>
 
-<!-- NOTES -->
 <div id="notesWin" class="window">
   <div class="titlebar">
     <div class="controls">
@@ -480,9 +503,7 @@
   </div>
 </div>
 
-<!-- DOCK -->
 <div class="dock">
-
   <div class="dock-item" onclick="openWindow('fxWin')">
     <img src="https://img.icons8.com/neon/512/controller.png">
     <span>Games</span>
@@ -512,253 +533,268 @@
     <img src="https://img.icons8.com/neon/512/todo-list.png">
     <span>Notes</span>
   </div>
-
 </div>
-
 <script>
-  /* ⭐ OPEN WINDOW WITH ANIMATION */
-  function openWindow(id) {
-    const win = document.getElementById(id);
-    win.style.display = "block";
+document.querySelectorAll('.window').forEach(initializeWindow);
+
+function openWindow(id) {
+  const win = document.getElementById(id);
+  win.style.display = "block";
+  win.style.zIndex = Date.now();
+  requestAnimationFrame(() => win.classList.add("open"));
+}
+
+function initializeWindow(win) {
+  const bar = win.querySelector('.titlebar');
+  let offsetX, offsetY, dragging = false;
+
+  bar.addEventListener('mousedown', e => {
+    dragging = true;
+    offsetX = e.clientX - win.offsetLeft;
+    offsetY = e.clientY - win.offsetTop;
+    bar.style.cursor = "grabbing";
     win.style.zIndex = Date.now();
+  });
 
-    // Trigger fade + scale animation
-    requestAnimationFrame(() => {
-      win.classList.add("open");
-    });
-  }
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    win.style.left = (e.clientX - offsetX) + "px";
+    win.style.top = (e.clientY - offsetY) + "px";
+  });
 
-  /* ⭐ DRAGGING + WINDOW CONTROLS */
-  document.querySelectorAll('.window').forEach(win => {
-    const bar = win.querySelector('.titlebar');
-    let offsetX, offsetY, dragging = false;
+  document.addEventListener('mouseup', () => {
+    dragging = false;
+    bar.style.cursor = "grab";
+  });
 
-    bar.addEventListener('mousedown', e => {
-      dragging = true;
-      offsetX = e.clientX - win.offsetLeft;
-      offsetY = e.clientY - win.offsetTop;
-      bar.style.cursor = "grabbing";
-      win.style.zIndex = Date.now();
-    });
+  const [close, min, max] = win.querySelectorAll('.controls div');
 
-    document.addEventListener('mousemove', e => {
-      if (!dragging) return;
-      win.style.left = (e.clientX - offsetX) + "px";
-      win.style.top = (e.clientY - offsetY) + "px";
-    });
-
-    document.addEventListener('mouseup', () => {
-      dragging = false;
-      bar.style.cursor = "grab";
-    });
-
-    const [close, min, max] = win.querySelectorAll('.controls div');
-
-    /* ⭐ CLOSE WITH ANIMATION */
-    close.onclick = () => {
-      win.classList.remove("open");
-      setTimeout(() => win.style.display = "none", 200);
-    };
-
-    /* ⭐ MINIMIZE (same as close for now) */
-    min.onclick = () => {
-      win.classList.remove("open");
-      setTimeout(() => win.style.display = "none", 200);
-    };
-
-    /* ⭐ MAXIMIZE */
-    max.onclick = () => {
-      if (win.classList.contains("maximized")) {
-        win.classList.remove("maximized");
-        win.style.width = win.classList.contains('small') ? "320px" :
-                          win.classList.contains('medium') ? "420px" : "520px";
-        win.style.height = win.classList.contains('small') ? "220px" :
-                           win.classList.contains('medium') ? "330px" : "360px";
-        win.style.left = "120px";
-        win.style.top = "120px";
-      } else {
-        win.classList.add("maximized");
-        win.style.left = "0";
-        win.style.top = "0";
-        win.style.width = "100vw";
-        win.style.height = "100vh";
+  close.onclick = () => {
+    win.classList.remove("open");
+    setTimeout(() => win.remove(), 200);
+    setTimeout(() => {
+      if (!document.querySelectorAll(".game-window").length) {
+        document.querySelector(".dock-item:nth-child(1)").classList.remove("playing");
       }
-    };
-  });
-
-  /* ⭐ CLOCK SYSTEM */
-  function updateClocks() {
-    const now = new Date();
-    const h = now.getHours().toString().padStart(2,'0');
-    const m = now.getMinutes().toString().padStart(2,'0');
-    const s = now.getSeconds().toString().padStart(2,'0');
-
-    const desktopClock = document.getElementById('desktopClock');
-    if (desktopClock) desktopClock.textContent = `${h}:${m}:${s}`;
-
-    const clockDisplay = document.getElementById('clockDisplay');
-    const clockDate = document.getElementById('clockDate');
-    if (clockDisplay && clockDate) {
-      clockDisplay.textContent = `${h}:${m}:${s}`;
-      clockDate.textContent = now.toLocaleDateString(undefined, {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-  }
-  updateClocks();
-  setInterval(updateClocks, 1000);
-
-  /* ⭐ CALCULATOR */
-  const calcDisplay = document.getElementById('calcDisplay');
-  let calcBuffer = "0";
-  let calcLastOp = null;
-  let calcStored = null;
-
-  function updateCalcDisplay() {
-    calcDisplay.value = calcBuffer;
-  }
-
-  function handleCalcKey(key) {
-    if (!isNaN(key)) {
-      calcBuffer = calcBuffer === "0" ? key : calcBuffer + key;
-    } else if (key === ".") {
-      if (!calcBuffer.includes(".")) calcBuffer += ".";
-    } else if (key === "C") {
-      calcBuffer = "0";
-      calcLastOp = null;
-      calcStored = null;
-    } else if (key === "←") {
-      calcBuffer = calcBuffer.length > 1 ? calcBuffer.slice(0,-1) : "0";
-    } else if (["+", "-", "*", "/", "%"].includes(key)) {
-      if (calcStored === null) {
-        calcStored = parseFloat(calcBuffer);
-      } else if (calcLastOp) {
-        const current = parseFloat(calcBuffer);
-        calcStored = evalCalc(calcStored, current, calcLastOp);
-      }
-      calcLastOp = key;
-      calcBuffer = "0";
-    } else if (key === "=") {
-      if (calcLastOp !== null && calcStored !== null) {
-        const current = parseFloat(calcBuffer);
-        calcBuffer = String(evalCalc(calcStored, current, calcLastOp));
-        calcStored = null;
-        calcLastOp = null;
-      }
-    }
-    updateCalcDisplay();
-  }
-
-  function evalCalc(a, b, op) {
-    if (op === "+") return a + b;
-    if (op === "-") return a - b;
-    if (op === "*") return a * b;
-    if (op === "/") return b === 0 ? 0 : a / b;
-    if (op === "%") return a % b;
-    return b;
-  }
-
-  document.querySelectorAll('.calc-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      handleCalcKey(btn.getAttribute('data-key'));
-    });
-  });
-  updateCalcDisplay();
-
-  /* ⭐ TERMINAL */
-  const termOutput = document.getElementById('termOutput');
-  const termInput = document.getElementById('termInput');
-
-  function termPrint(line) {
-    const div = document.createElement('div');
-    div.textContent = line;
-    termOutput.appendChild(div);
-    termOutput.scrollTop = termOutput.scrollHeight;
-  }
-
-  function handleCommand(cmd) {
-    const trimmed = cmd.trim();
-    if (!trimmed) return;
-
-    termPrint(`guest@supernova:~$ ${trimmed}`);
-
-    const [base, ...rest] = trimmed.split(" ");
-    const arg = rest.join(" ");
-
-    switch (base) {
-      case "help":
-        termPrint("Commands: help, about, clear, theme, echo");
-        break;
-      case "about":
-        termPrint("Supernova OS — experimental web desktop environment.");
-        break;
-      case "clear":
-        termOutput.innerHTML = "";
-        break;
-      case "theme":
-        const map = {
-          nebula: "theme-nebula",
-          eclipse: "theme-eclipse",
-          aurora: "theme-aurora"
-        };
-        if (map[arg]) {
-          document.body.className = map[arg];
-          localStorage.setItem("supernova_theme", map[arg]);
-          termPrint(`Theme set to ${arg}.`);
-        } else {
-          termPrint("Usage: theme nebula|eclipse|aurora");
-        }
-        break;
-      case "echo":
-        termPrint(arg);
-        break;
-      default:
-        termPrint(`Command not found: ${base}`);
-    }
-  }
-
-  termPrint("Supernova Terminal");
-  termPrint("Type 'help' to begin.");
-
-  termInput.addEventListener('keydown', e => {
-    if (e.key === "Enter") {
-      handleCommand(termInput.value);
-      termInput.value = "";
-    }
-  });
-
-  /* ⭐ THEMES */
-  document.querySelectorAll('.theme-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const theme = card.getAttribute('data-theme');
-      document.body.className = theme;
-      localStorage.setItem("supernova_theme", theme);
-    });
-  });
-
-  const savedTheme = localStorage.getItem("supernova_theme");
-  if (savedTheme) document.body.className = savedTheme;
-
-  /* ⭐ NOTES */
-  const notesArea = document.getElementById('notesArea');
-  const NOTES_KEY = "supernova_os_notes";
-
-  const savedNotes = localStorage.getItem(NOTES_KEY);
-  if (savedNotes !== null) notesArea.value = savedNotes;
-
-  notesArea.addEventListener('input', () => {
-    localStorage.setItem(NOTES_KEY, notesArea.value);
-  });
-
-  document.getElementById("clearCacheBtn").onclick = () => {
-    localStorage.removeItem("supernova_theme");
-    localStorage.removeItem("supernova_os_notes");
-    location.reload();
+    }, 250);
   };
-</script>
 
+  min.onclick = () => {
+    win.classList.remove("open");
+    setTimeout(() => win.style.display = "none", 200);
+  };
+
+  max.onclick = () => {
+    if (win.classList.contains("maximized")) {
+      win.classList.remove("maximized");
+      win.style.width = win.dataset.originalWidth;
+      win.style.height = win.dataset.originalHeight;
+      win.style.left = win.dataset.originalLeft;
+      win.style.top = win.dataset.originalTop;
+    } else {
+      win.dataset.originalWidth = win.style.width;
+      win.dataset.originalHeight = win.style.height;
+      win.dataset.originalLeft = win.style.left;
+      win.dataset.originalTop = win.style.top;
+      win.classList.add("maximized");
+      win.style.left = "0";
+      win.style.top = "0";
+      win.style.width = "100vw";
+      win.style.height = "100vh";
+    }
+  };
+}
+
+function updateClocks() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const s = now.getSeconds().toString().padStart(2,'0');
+
+  const desktopClock = document.getElementById('desktopClock');
+  if (desktopClock) desktopClock.textContent = `${h}:${m}:${s}`;
+
+  const clockDisplay = document.getElementById('clockDisplay');
+  const clockDate = document.getElementById('clockDate');
+  if (clockDisplay && clockDate) {
+    clockDisplay.textContent = `${h}:${m}:${s}`;
+    clockDate.textContent = now.toLocaleDateString(undefined, {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+}
+updateClocks();
+setInterval(updateClocks, 1000);
+
+const calcDisplay = document.getElementById('calcDisplay');
+let calcBuffer = "0";
+let calcLastOp = null;
+let calcStored = null;
+
+function updateCalcDisplay() {
+  calcDisplay.value = calcBuffer;
+}
+
+function handleCalcKey(key) {
+  if (!isNaN(key)) {
+    calcBuffer = calcBuffer === "0" ? key : calcBuffer + key;
+  } else if (key === ".") {
+    if (!calcBuffer.includes(".")) calcBuffer += ".";
+  } else if (key === "C") {
+    calcBuffer = "0";
+    calcLastOp = null;
+    calcStored = null;
+  } else if (key === "←") {
+    calcBuffer = calcBuffer.length > 1 ? calcBuffer.slice(0,-1) : "0";
+  } else if (["+", "-", "*", "/", "%"].includes(key)) {
+    if (calcStored === null) {
+      calcStored = parseFloat(calcBuffer);
+    } else if (calcLastOp) {
+      const current = parseFloat(calcBuffer);
+      calcStored = evalCalc(calcStored, current, calcLastOp);
+    }
+    calcLastOp = key;
+    calcBuffer = "0";
+  } else if (key === "=") {
+    if (calcLastOp !== null && calcStored !== null) {
+      const current = parseFloat(calcBuffer);
+      calcBuffer = String(evalCalc(calcStored, current, calcLastOp));
+      calcStored = null;
+      calcLastOp = null;
+    }
+  }
+  updateCalcDisplay();
+}
+
+function evalCalc(a, b, op) {
+  if (op === "+") return a + b;
+  if (op === "-") return a - b;
+  if (op === "*") return a * b;
+  if (op === "/") return b === 0 ? 0 : a / b;
+  if (op === "%") return a % b;
+  return b;
+}
+
+document.querySelectorAll('.calc-btn').forEach(btn => {
+  btn.addEventListener('click', () => handleCalcKey(btn.getAttribute('data-key')));
+});
+updateCalcDisplay();
+
+const termOutput = document.getElementById('termOutput');
+const termInput = document.getElementById('termInput');
+
+function termPrint(line) {
+  const div = document.createElement('div');
+  div.textContent = line;
+  termOutput.appendChild(div);
+  termOutput.scrollTop = termOutput.scrollHeight;
+}
+
+function handleCommand(cmd) {
+  const trimmed = cmd.trim();
+  if (!trimmed) return;
+
+  termPrint(`guest@supernova:~$ ${trimmed}`);
+
+  const [base, ...rest] = trimmed.split(" ");
+  const arg = rest.join(" ");
+
+  if (base === "help") termPrint("Commands: help, about, clear, theme, echo");
+  else if (base === "about") termPrint("Supernova OS — experimental web desktop environment.");
+  else if (base === "clear") termOutput.innerHTML = "";
+  else if (base === "theme") {
+    const map = { nebula: "theme-nebula", eclipse: "theme-eclipse", aurora: "theme-aurora" };
+    if (map[arg]) {
+      document.body.className = map[arg];
+      localStorage.setItem("supernova_theme", map[arg]);
+      termPrint(`Theme set to ${arg}.`);
+    } else termPrint("Usage: theme nebula|eclipse|aurora");
+  }
+  else if (base === "echo") termPrint(arg);
+  else termPrint(`Command not found: ${base}`);
+}
+
+termPrint("Supernova Terminal");
+termPrint("Type 'help' to begin.");
+
+termInput.addEventListener('keydown', e => {
+  if (e.key === "Enter") {
+    handleCommand(termInput.value);
+    termInput.value = "";
+  }
+});
+
+document.querySelectorAll('.theme-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const theme = card.getAttribute('data-theme');
+    document.body.className = theme;
+    localStorage.setItem("supernova_theme", theme);
+  });
+});
+
+const savedTheme = localStorage.getItem("supernova_theme");
+if (savedTheme) document.body.className = savedTheme;
+
+const notesArea = document.getElementById('notesArea');
+const NOTES_KEY = "supernova_os_notes";
+
+const savedNotes = localStorage.getItem(NOTES_KEY);
+if (savedNotes !== null) notesArea.value = savedNotes;
+
+notesArea.addEventListener('input', () => {
+  localStorage.setItem(NOTES_KEY, notesArea.value);
+});
+
+document.getElementById("clearCacheBtn").onclick = () => {
+  localStorage.removeItem("supernova_theme");
+  localStorage.removeItem("supernova_os_notes");
+  location.reload();
+};
+
+window.addEventListener("message", (event) => {
+  if (event.data.type === "openGameWindow") {
+    createGameWindow(event.data.url, event.data.name);
+  }
+});
+
+function createGameWindow(url, name) {
+  const win = document.createElement("div");
+  win.className = "window game-window";
+  win.style.left = "160px";
+  win.style.top = "160px";
+  win.style.width = "720px";
+  win.style.height = "480px";
+  win.style.zIndex = Date.now();
+
+  win.innerHTML = `
+    <div class="titlebar">
+      <div class="controls">
+        <div class="close"></div>
+        <div class="min"></div>
+        <div class="max"></div>
+      </div>
+      <span>${name}</span>
+    </div>
+    <div class="window-content">
+      <div class="game-loader">Loading game...</div>
+      <iframe src="${url}"></iframe>
+    </div>
+  `;
+
+  document.body.appendChild(win);
+  initializeWindow(win);
+  requestAnimationFrame(() => win.classList.add("open"));
+
+  document.querySelector(".dock-item:nth-child(1)").classList.add("playing");
+
+  const iframe = win.querySelector("iframe");
+  iframe.onload = () => {
+    win.querySelector(".game-loader").remove();
+  };
+}
+</script>
 </body>
 </html>
