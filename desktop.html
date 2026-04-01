@@ -384,6 +384,7 @@
   </div>
 </div>
 
+
 <div id="clockWin" class="window small">
   <div class="titlebar">
     <div class="controls">
@@ -754,6 +755,120 @@ document.getElementById("clearCacheBtn").onclick = () => {
   location.reload();
 };
 
+const GAMES = [
+  { name: "1", emoji: "🧩", url: "https://3kh0isgood.github.io/projects/1/index.html" },
+  { name: "1v1.LOL", emoji: "⚔️", url: "https://3kh0isgood.github.io/projects/1v1lol/index.html" },
+  { name: "1v1.Space", emoji: "🚀", url: "https://3kh0isgood.github.io/projects/1v1space/" },
+  { name: "10 Minutes Till Dawn", emoji: "🌘", url: "https://3kh0isgood.github.io/projects/10-minutes-till-dawn/" },
+  { name: "100 Player Pong", emoji: "🏓", url: "https://3kh0isgood.github.io/projects/100ng/index.html" },
+  { name: "2 Player Games", emoji: "🌐", url: "https://www.twoplayergames.org/" },
+  { name: "2048", emoji: "🔢", url: "https://3kh0isgood.github.io/projects/2048/" },
+  { name: "2048 Multitask", emoji: "🧠", url: "https://3kh0isgood.github.io/projects/2048-multitask/" },
+  { name: "9007199254740992", emoji: "🧮", url: "https://3kh0isgood.github.io/projects/9007199254740992/" },
+  { name: "3kh0", emoji: "🌐", url: "https://3kh0isgood.github.io/" }
+  // continue adding from your full list with emoji + url
+];
+
+let favs = JSON.parse(localStorage.getItem("supernova_game_favs") || "[]");
+
+function saveFavs() {
+  localStorage.setItem("supernova_game_favs", JSON.stringify(favs));
+}
+
+function renderGames() {
+  const grid = document.getElementById("gamesGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  GAMES.forEach(game => {
+    const card = document.createElement("div");
+    card.style.padding = "10px";
+    card.style.borderRadius = "10px";
+    card.style.border = "1px solid rgba(255,255,255,0.08)";
+    card.style.background = "rgba(15,23,42,0.9)";
+    card.style.display = "flex";
+    card.style.flexDirection = "column";
+    card.style.gap = "6px";
+    card.style.cursor = "pointer";
+    card.style.transition = "transform 0.15s, box-shadow 0.15s";
+
+    card.onmouseenter = () => {
+      card.style.transform = "translateY(-2px)";
+      card.style.boxShadow = "0 10px 25px rgba(0,0,0,0.45)";
+    };
+    card.onmouseleave = () => {
+      card.style.transform = "none";
+      card.style.boxShadow = "none";
+    };
+
+    const top = document.createElement("div");
+    top.style.display = "flex";
+    top.style.alignItems = "center";
+    top.style.justifyContent = "space-between";
+
+    const left = document.createElement("div");
+    left.style.display = "flex";
+    left.style.alignItems = "center";
+    left.style.gap = "8px";
+
+    const icon = document.createElement("div");
+    icon.textContent = game.emoji || "🎮";
+    icon.style.fontSize = "1.4rem";
+
+    const title = document.createElement("div");
+    title.textContent = game.name;
+    title.style.fontSize = "0.9rem";
+
+    left.appendChild(icon);
+    left.appendChild(title);
+
+    const fav = document.createElement("button");
+    fav.textContent = favs.includes(game.name) ? "★" : "☆";
+    fav.style.border = "none";
+    fav.style.background = "transparent";
+    fav.style.color = "#facc15";
+    fav.style.cursor = "pointer";
+    fav.style.fontSize = "1.1rem";
+
+    fav.onclick = (e) => {
+      e.stopPropagation();
+      if (favs.includes(game.name)) {
+        favs = favs.filter(f => f !== game.name);
+      } else {
+        favs.push(game.name);
+      }
+      saveFavs();
+      renderGames();
+    };
+
+    top.appendChild(left);
+    top.appendChild(fav);
+
+    const play = document.createElement("button");
+    play.textContent = "Play";
+    play.style.marginTop = "4px";
+    play.style.padding = "6px 8px";
+    play.style.borderRadius = "8px";
+    play.style.border = "1px solid rgba(255,255,255,0.12)";
+    play.style.background = "rgba(37,99,235,0.9)";
+    play.style.color = "white";
+    play.style.fontSize = "0.8rem";
+    play.style.cursor = "pointer";
+
+    play.onclick = (e) => {
+      e.stopPropagation();
+      createGameWindow(game.url, game.name);
+    };
+
+    card.onclick = () => {
+      createGameWindow(game.url, game.name);
+    };
+
+    card.appendChild(top);
+    card.appendChild(play);
+    grid.appendChild(card);
+  });
+}
+
 function createGameWindow(url, name) {
   const win = document.createElement("div");
   win.className = "window game-window";
@@ -786,15 +901,12 @@ function createGameWindow(url, name) {
 
   const iframe = win.querySelector("iframe");
   iframe.onload = () => {
-    win.querySelector(".game-loader").remove();
+    const loader = win.querySelector(".game-loader");
+    if (loader) loader.remove();
   };
 }
 
-window.addEventListener("message", (event) => {
-  if (event.data.type === "openGameWindow") {
-    createGameWindow(event.data.url, event.data.name);
-  }
-});
+renderGames();
 </script>
 
 </body>
