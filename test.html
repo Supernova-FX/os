@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Supernova OS — Desktop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  :root {
+    --accent: #7b5cff;
+    --text-main: #f5f5ff;
+    --text-muted: #9ca3c7;
+    --border: rgba(255,255,255,0.08);
+    --window-bg: rgba(10,12,25,0.9);
+    --window-blur: blur(14px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    height: 100vh;
+    overflow: hidden;
+    background: #050712;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+      "Segoe UI", sans-serif;
+    color: var(--text-main);
+  }
+
+  body.theme-nebula {
+    --accent: #7b5cff;
+    background: url("https://images.hdqwalls.com/wallpapers/nebula-5k-oj.jpg") center/cover no-repeat fixed;
+  }
+
+  body.theme-eclipse {
+    --accent: #f97316;
+    background: url("https://wallpaperaccess.com/full/1416639.jpg") center/cover no-repeat fixed;
+  }
+
+  body.theme-aurora {
+    --accent: #22c55e;
+    background: url("https://images.hdqwalls.com/wallpapers/aurora-borealis-northern-lights-4k-kr.jpg") center/cover no-repeat fixed;
+  }
+
+  .desktop-clock {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(5,7,18,0.7);
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    backdrop-filter: blur(12px);
+  }
+
+  .dock {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 22px;
+    padding: 14px 22px;
+    background: rgba(5,7,18,0.7);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+  }
+
+  .dock-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .dock-item:hover {
+    transform: scale(1.25);
+  }
+
+  .dock-item img {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .dock-item span {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .dock-item.playing img {
+    box-shadow: 0 0 18px var(--accent);
+  }
+
+  .dock-item.playing::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: absolute;
+    bottom: -4px;
+  }
+
+  /* ---------------- WINDOW BASE ---------------- */
+
+  .window {
+    position: absolute;
+    top: 120px;
+    left: 120px;
+    width: 520px;
+    height: 360px;
+    background: var(--window-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    backdrop-filter: var(--window-blur);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    display: none;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .window.open {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Genie minimize animation */
+  .window.minimizing {
+    animation: genieMinimize 0.35s ease forwards;
+  }
+
+  @keyframes genieMinimize {
+    0% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    60% {
+      opacity: 0.4;
+      transform: scale(0.4) translateY(40px);
+      border-radius: 20px;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.1) translateY(120px);
+      border-radius: 50px;
+    }
+  }
+
+  .window.small { width: 320px; height: 220px; }
+  .window.medium { width: 420px; height: 330px; }
+
+  .titlebar {
+    height: 34px;
+    background: rgba(255,255,255,0.06);
+    border-bottom: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    cursor: grab;
+  }
+
+  .titlebar span {
+    flex: 1;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+  }
+
+  .controls div {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .close { background: #ef4444; }
+  .min   { background: #facc15; }
+  .max   { background: #22c55e; }
+
+  .window-content {
+    padding: 10px 12px;
+    height: calc(100% - 34px);
+    font-size: 0.85rem;
+    color: var(--text-main);
+    overflow: auto; /* FIXED: ensures scrolling works */
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .game-loader {
+    position: absolute;
+    inset: 0;
+    background: #020617;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "JetBrains Mono", monospace;
+    color: #22c55e;
+    font-size: 0.9rem;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.4; }
+  }
+
+  /* ---------------- CLOCK ---------------- */
+
+  .clock-display {
+    font-size: 2.4rem;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 24px;
+  }
+
+  .clock-date {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  /* ---------------- CALCULATOR ---------------- */
+
+  .calc-display {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,0.9);
+    font-size: 1.1rem;
+    text-align: right;
+    margin-bottom: 10px;
+    font-family: "JetBrains Mono", ui-monospace;
+    color: white; /* FIXED */
+    text-shadow: 0 0 4px rgba(255,255,255,0.6); /* FIXED */
+  }
+
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 8px;
+  }
+
+  .calc-btn {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,0.9);
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: background 0.12s ease-out, transform 0.12s ease-out;
+    color: white; /* FIXED */
+    text-shadow: 0 0 3px rgba(255,255,255,0.5); /* FIXED */
+  }
+
+  .calc-btn.op { color: var(--accent); text-shadow:none; }
+
+  .calc-btn:hover {
+    background: rgba(30,64,175,0.9);
+    transform: translateY(-1px);
+  }
+
+  /* ---------------- TERMINAL ---------------- */
+
+  .terminal-output {
+    height: calc(100% - 40px);
+    background: #020617;
+    border-radius: 8px;
+    padding: 8px;
+    font-family: "JetBrains Mono", ui-monospace;
+    font-size: 0.75rem;
+    color: #a5f3fc;
+    overflow-y: auto;
+    border: 1px solid rgba(148,163,184,0.4);
+  }
+
+  .terminal-input-row {
+    margin-top: 6px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-family: "JetBrains Mono", ui-monospace;
+    font-size: 0.75rem;
+  }
+
+  .terminal-input-row span { color: #22c55e; }
+
+  .terminal-input-row input {
+    flex: 1;
+    background: #020617;
+    border-radius: 6px;
+    border: 1px solid rgba(148,163,184,0.4);
+    padding: 4px 6px;
+    color: #e5e7eb;
+    outline: none;
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  /* ---------------- THEMES ---------------- */
+
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .theme-card {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,0.9);
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-align: center;
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out,
+      border-color 0.12s ease-out;
+    color: var(--text-main);
+  }
+
+  .theme-card:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(123,92,255,0.4);
+  }
+
+  .theme-preview {
+    width: 100%;
+    height: 70px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .theme-preview.nebula {
+    background-image: url("https://images.hdqwalls.com/wallpapers/nebula-5k-oj.jpg");
+  }
+
+  .theme-preview.eclipse {
+    background-image: url("https://wallpaperaccess.com/full/1416639.jpg");
+  }
+
+  .theme-preview.aurora {
+    background-image: url("https://images.hdqwalls.com/wallpapers/aurora-borealis-northern-lights-4k-kr.jpg");
+  }
+
+  .clear-cache-btn {
+    margin-top: 14px;
+    padding: 8px 10px;
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(127,29,29,0.9);
+    color: #fee2e2;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.12s ease-out, transform 0.12s ease-out;
+  }
+
+  .clear-cache-btn:hover {
+    background: rgba(185,28,28,0.95);
+    transform: translateY(-1px);
+  }
+
+  /* ---------------- NOTES ---------------- */
+
+  .notes-textarea {
+    width: 100%;
+    height: calc(100% - 24px);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,0.95);
+    padding: 8px 10px;
+    resize: none;
+    outline: none;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    font-family: system-ui, sans-serif;
+  }
+</style>
+</head>
+<body class="theme-nebula">
+<div id="notesWin" class="window">
+  <div class="titlebar">
+    <div class="controls">
+      <div class="close"></div>
+      <div class="min"></div>
+      <div class="max"></div>
+    </div>
+    <span>Notes</span>
+  </div>
+  <div class="window-content">
+    <textarea id="notesArea" class="notes-textarea"></textarea>
+  </div>
+</div>
+
+<div class="dock">
+  <div class="dock-item" onclick="openWindow('fxWin')">
+    <img src="https://img.icons8.com/neon/512/controller.png">
+    <span>Games</span>
+  </div>
+
+  <div class="dock-item" onclick="openWindow('clockWin')">
+    <img src="https://img.icons8.com/neon/512/clock.png">
+    <span>Clock</span>
+  </div>
+
+  <div class="dock-item" onclick="openWindow('calcWin')">
+    <img src="https://img.icons8.com/neon/512/calculator.png">
+    <span>Calc</span>
+  </div>
+
+  <div class="dock-item" onclick="openWindow('termWin')">
+    <img src="https://img.icons8.com/neon/512/console.png">
+    <span>Terminal</span>
+  </div>
+
+  <div class="dock-item" onclick="openWindow('themeWin')">
+    <img src="https://img.icons8.com/neon/512/color-palette.png">
+    <span>Themes</span>
+  </div>
+
+  <div class="dock-item" onclick="openWindow('notesWin')">
+    <img src="https://img.icons8.com/neon/512/todo-list.png">
+    <span>Notes</span>
+  </div>
+</div>
+
+<script>
+/* ---------------- OPEN WINDOW ---------------- */
+
+function openWindow(id) {
+  const win = document.getElementById(id);
+  win.classList.remove("minimizing");
+  win.style.display = "block";
+  win.style.zIndex = Date.now();
+  requestAnimationFrame(() => win.classList.add("open"));
+}
+
+/* ---------------- WINDOW DRAGGING + CONTROLS ---------------- */
+
+let isGameOpen = false; // tracks whether a game iframe is active
+
+function initializeWindow(win) {
+  const bar = win.querySelector('.titlebar');
+  let offsetX, offsetY, dragging = false;
+
+  bar.addEventListener('mousedown', e => {
+    dragging = true;
+    offsetX = e.clientX - win.offsetLeft;
+    offsetY = e.clientY - win.offsetTop;
+    bar.style.cursor = "grabbing";
+    win.style.zIndex = Date.now();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    win.style.left = (e.clientX - offsetX) + "px";
+    win.style.top = (e.clientY - offsetY) + "px";
+  });
+
+  document.addEventListener('mouseup', () => {
+    dragging = false;
+    bar.style.cursor = "grab";
+  });
+
+  const [close, min, max] = win.querySelectorAll('.controls div');
+
+  /* ---------------- CLOSE BUTTON ---------------- */
+  close.onclick = () => {
+    if (win.id === "fxWin") {
+      if (isGameOpen) {
+        // inside a game → go back to grid
+        isGameOpen = false;
+        renderGamesGrid();
+        return;
+      }
+      // on grid → close window normally
+    }
+
+    win.classList.remove("open");
+    setTimeout(() => {
+      win.style.display = "none";
+    }, 200);
+  };
+
+  /* ---------------- MINIMIZE BUTTON (GENIE) ---------------- */
+  min.onclick = () => {
+    win.classList.add("minimizing");
+    win.classList.remove("open");
+    setTimeout(() => {
+      win.style.display = "none";
+      win.classList.remove("minimizing");
+    }, 350);
+  };
+
+  /* ---------------- MAXIMIZE BUTTON ---------------- */
+  max.onclick = () => {
+    if (win.classList.contains("maximized")) {
+      win.classList.remove("maximized");
+      win.style.width = win.dataset.originalWidth;
+      win.style.height = win.dataset.originalHeight;
+      win.style.left = win.dataset.originalLeft;
+      win.style.top = win.dataset.originalTop;
+    } else {
+      win.dataset.originalWidth = win.style.width;
+      win.dataset.originalHeight = win.style.height;
+      win.dataset.originalLeft = win.style.left;
+      win.dataset.originalTop = win.style.top;
+      win.classList.add("maximized");
+      win.style.left = "0";
+      win.style.top = "0";
+      win.style.width = "100vw";
+      win.style.height = "100vh";
+    }
+  };
+}
+
+document.querySelectorAll('.window').forEach(initializeWindow);
+
+/* ---------------- CLOCK ---------------- */
+
+function updateClocks() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const s = now.getSeconds().toString().padStart(2,'0');
+
+  const desktopClock = document.getElementById('desktopClock');
+  if (desktopClock) desktopClock.textContent = `${h}:${m}:${s}`;
+
+  const clockDisplay = document.getElementById('clockDisplay');
+  const clockDate = document.getElementById('clockDate');
+  if (clockDisplay && clockDate) {
+    clockDisplay.textContent = `${h}:${m}:${s}`;
+    clockDate.textContent = now.toLocaleDateString(undefined, {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+}
+updateClocks();
+setInterval(updateClocks, 1000);
+
+/* ---------------- CALCULATOR ---------------- */
+
+const calcDisplay = document.getElementById('calcDisplay');
+let calcBuffer = "0";
+let calcLastOp = null;
+let calcStored = null;
+
+function updateCalcDisplay() {
+  calcDisplay.value = calcBuffer;
+}
+
+function handleCalcKey(key) {
+  if (!isNaN(key)) {
+    calcBuffer = calcBuffer === "0" ? key : calcBuffer + key;
+  } else if (key === ".") {
+    if (!calcBuffer.includes(".")) calcBuffer += ".";
+  } else if (key === "C") {
+    calcBuffer = "0";
+    calcLastOp = null;
+    calcStored = null;
+  } else if (key === "←") {
+    calcBuffer = calcBuffer.length > 1 ? calcBuffer.slice(0,-1) : "0";
+  } else if (["+", "-", "*", "/", "%"].includes(key)) {
+    if (calcStored === null) {
+      calcStored = parseFloat(calcBuffer);
+    } else if (calcLastOp) {
+      const current = parseFloat(calcBuffer);
+      calcStored = evalCalc(calcStored, current, calcLastOp);
+    }
+    calcLastOp = key;
+    calcBuffer = "0";
+  } else if (key === "=") {
+    if (calcLastOp !== null && calcStored !== null) {
+      const current = parseFloat(calcBuffer);
+      calcBuffer = String(evalCalc(calcStored, current, calcLastOp));
+      calcStored = null;
+      calcLastOp = null;
+    }
+  }
+  updateCalcDisplay();
+}
+
+function evalCalc(a, b, op) {
+  if (op === "+") return a + b;
+  if (op === "-") return a - b;
+  if (op === "*") return a * b;
+  if (op === "/") return b === 0 ? 0 : a / b;
+  if (op === "%") return a % b;
+  return b;
+}
+
+document.querySelectorAll('.calc-btn').forEach(btn => {
+  btn.addEventListener('click', () => handleCalcKey(btn.getAttribute('data-key')));
+});
+updateCalcDisplay();
+
+/* ---------------- TERMINAL ---------------- */
+
+const termOutput = document.getElementById('termOutput');
+const termInput = document.getElementById('termInput');
+
+function termPrint(line) {
+  const div = document.createElement('div');
+  div.textContent = line;
+  termOutput.appendChild(div);
+  termOutput.scrollTop = termOutput.scrollHeight;
+}
+
+function handleCommand(cmd) {
+  const trimmed = cmd.trim();
+  if (!trimmed) return;
+
+  termPrint(`guest@supernova:~$ ${trimmed}`);
+
+  const [base, ...rest] = trimmed.split(" ");
+  const arg = rest.join(" ");
+
+  if (base === "help") termPrint("Commands: help, about, clear, theme, echo");
+  else if (base === "about") termPrint("Supernova OS — experimental web desktop environment.");
+  else if (base === "clear") termOutput.innerHTML = "";
+  else if (base === "theme") {
+    const map = { nebula: "theme-nebula", eclipse: "theme-eclipse", aurora: "theme-aurora" };
+    if (map[arg]) {
+      document.body.className = map[arg];
+      localStorage.setItem("supernova_theme", map[arg]);
+      termPrint(`Theme set to ${arg}.`);
+    } else termPrint("Usage: theme nebula|eclipse|aurora");
+  }
+  else if (base === "echo") termPrint(arg);
+  else termPrint(`Command not found: ${base}`);
+}
+
+termPrint("Supernova Terminal");
+termPrint("Type 'help' to begin.");
+
+termInput.addEventListener('keydown', e => {
+  if (e.key === "Enter") {
+    handleCommand(termInput.value);
+    termInput.value = "";
+  }
+});
+
+document.querySelectorAll('.theme-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const theme = card.getAttribute('data-theme');
+    document.body.className = theme;
+    localStorage.setItem("supernova_theme", theme);
+  });
+});
+
+const savedTheme = localStorage.getItem("supernova_theme");
+if (savedTheme) document.body.className = savedTheme;
+
+const notesArea = document.getElementById('notesArea');
+const NOTES_KEY = "supernova_os_notes";
+
+const savedNotes = localStorage.getItem(NOTES_KEY);
+if (savedNotes !== null) notesArea.value = savedNotes;
+
+notesArea.addEventListener('input', () => {
+  localStorage.setItem(NOTES_KEY, notesArea.value);
+});
+
+document.getElementById("clearCacheBtn").onclick = () => {
+  localStorage.removeItem("supernova_theme");
+  localStorage.removeItem("supernova_os_notes");
+  location.reload();
+};
+</script>
+<script>
+/* ---------------- GAMES ARRAY ---------------- */
+
+const GAMES = [
+  { name: "1", emoji: "🧩", url: "https://3kh0isgood.github.io/projects/1/index.html" },
+  { name: "1v1.LOL", emoji: "⚔️", url: "https://3kh0isgood.github.io/projects/1v1lol/index.html" },
+  { name: "1v1.Space", emoji: "🚀", url: "https://3kh0isgood.github.io/projects/1v1space/" },
+  { name: "10 Minutes Till Dawn", emoji: "🌘", url: "https://3kh0isgood.github.io/projects/10-minutes-till-dawn/" },
+  { name: "100 Player Pong", emoji: "🏓", url: "https://3kh0isgood.github.io/projects/100ng/index.html" },
+  { name: "2 Player Games", emoji: "🌐", url: "https://www.twoplayergames.org/" },
+  { name: "2048", emoji: "🔢", url: "https://3kh0isgood.github.io/projects/2048/" },
+  { name: "2048 Multitask", emoji: "🧠", url: "https://3kh0isgood.github.io/projects/2048-multitask/" },
+  { name: "9007199254740992", emoji: "🧮", url: "https://3kh0isgood.github.io/projects/9007199254740992/" },
+  { name: "3kh0", emoji: "🌐", url: "https://3kh0isgood.github.io/" },
+  { name: "A Dark Room", emoji: "🌑", url: "https://3kh0isgood.github.io/projects/adarkroom/index.html" },
+  { name: "Achievement Unlocked", emoji: "🔓", url: "https://3kh0isgood.github.io/projects/achievementunlocked/index.html" },
+  { name: "Adrenaline Challenge", emoji: "🏍️", url: "https://3kh0isgood.github.io/projects/adrenalinechallenge/index.html" },
+  { name: "Agar Live", emoji: "🦠", url: "https://agar.live" },
+  { name: "Ages of Conflict", emoji: "🌍", url: "https://3kh0isgood.github.io/projects/ages-of-conflict/index.html" },
+  { name: "Alien Hominid", emoji: "👾", url: "https://3kh0isgood.github.io/projects/alienhominid/index.html" },
+  { name: "Amidst the Clouds", emoji: "☁️", url: "https://3kh0isgood.github.io/projects/amidst-the-clouds/index.html" },
+  { name: "Among Us", emoji: "👽", url: "https://www.friv.cm/among-us/fullscreen/" },
+  { name: "Avalanche", emoji: "🏔️", url: "https://3kh0isgood.github.io/projects/avalanche/index.html" },
+  { name: "Bacon May Die", emoji: "🥓", url: "https://www.friv.cm/bacon-may-die/fullscreen/" },
+  { name: "Backrooms", emoji: "🚪", url: "https://3kh0isgood.github.io/projects/backrooms/index.html" },
+  { name: "Bad Egg", emoji: "🥚", url: "https://badegg.io/" },
+  { name: "Bad Ice Cream", emoji: "🍦", url: "https://3kh0isgood.github.io/projects/bad-ice-cream/index.html" },
+  { name: "Bad Ice Cream 2", emoji: "🍦", url: "https://3kh0isgood.github.io/projects/bad-ice-cream-2/index.html" },
+  { name: "Bad Ice Cream 3", emoji: "🍦", url: "https://3kh0isgood.github.io/projects/bad-ice-cream-3/index.html" },
+  { name: "Baldi's Basics", emoji: "📚", url: "https://www.friv.cm/baldis-basics-online/fullscreen/" },
+  { name: "Basketball Stars", emoji: "🏀", url: "https://3kh0isgood.github.io/projects/basketball-stars/index.html" },
+  { name: "Basket Bros", emoji: "🏀", url: "https://basketbros.io/" },
+  { name: "Battle for Gondor", emoji: "🛡️", url: "https://3kh0isgood.github.io/projects/battleforgondor/index.html" },
+  { name: "Bad Time Simulator", emoji: "💀", url: "https://jcw87.github.io/c2-sans-fight/" },
+  { name: "Big Shot Boxing", emoji: "🥊", url: "https://bigshotboxing.gitlab.io/" },
+  { name: "Big Red Button", emoji: "🔴", url: "https://3kh0isgood.github.io/projects/bigredbutton/index.html" },
+  { name: "Black Hole Square", emoji: "🕳️", url: "https://3kh0isgood.github.io/projects/blacholesquare/index.html" },
+  { name: "Black Knight", emoji: "⚔️", url: "https://3kh0isgood.github.io/projects/blackknight/index.html" },
+  { name: "Block Blast", emoji: "🧱", url: "https://reunbozdo.github.io/" },
+  { name: "Bloons TD", emoji: "🎈", url: "https://3kh0isgood.github.io/projects/bloonstd/index.html" },
+  { name: "Bloons TD 2", emoji: "🎈", url: "https://3kh0isgood.github.io/projects/bloonstd2/index.html" },
+  { name: "Bloxors", emoji: "🧊", url: "https://3kh0isgood.github.io/projects/bloxors/index.html" },
+  { name: "Blumgi Rocket", emoji: "🚀", url: "https://dinosaur-game.io/blumgi-rocket" },
+  { name: "Bob the Robber", emoji: "🕵️", url: "https://3kh0isgood.github.io/projects/bob-the-robber/index.html" },
+  { name: "Bob the Robber 2", emoji: "🕵️", url: "https://3kh0isgood.github.io/projects/bobtherobber2/index.html" },
+  { name: "Box Head", emoji: "📦", url: "https://3kh0isgood.github.io/projects/boxhead2play/index.html" },
+  { name: "Breaking The Bank", emoji: "🏦", url: "https://3kh0isgood.github.io/projects/breakingthebank/index.html" },
+  { name: "Big Tower Tiny Square", emoji: "🏢", url: "https://3kh0isgood.github.io/projects/btts/index.html" },
+  { name: "Browser.lol", emoji: "🌐", url: "https://browser.lol/create" },
+  { name: "Burger & Frights", emoji: "🍔", url: "https://3kh0isgood.github.io/projects/burger-and-frights/index.html" },
+  { name: "Candy Crush", emoji: "🍬", url: "https://sweetcrush.vercel.app/" },
+  { name: "Cannon Basketball 4", emoji: "🏀", url: "https://3kh0isgood.github.io/projects/cannon-basketball-4/index.html" },
+  { name: "Canyon Defense", emoji: "🛡️", url: "https://3kh0isgood.github.io/projects/canyondefense/index.html" },
+  { name: "Cars Simulator", emoji: "🚗", url: "https://3kh0isgood.github.io/projects/cars-simulator/index.html" },
+  { name: "Cell Machine", emoji: "🧬", url: "https://3kh0isgood.github.io/projects/cell-machine/index.html" },
+  { name: "Champion Archer", emoji: "🏹", url: "https://3kh0isgood.github.io/projects/championarcher/index.html" },
+  { name: "circloO", emoji: "⚪", url: "https://3kh0isgood.github.io/projects/circlo/index.html" },
+  { name: "Classwork.cc", emoji: "📚", url: "https://classwork.cc/" },
+  { name: "Cluster Rush", emoji: "🚚", url: "https://3kh0isgood.github.io/projects/cluster-rush/index.html" },
+  { name: "Connect 3", emoji: "🔗", url: "https://3kh0isgood.github.io/projects/connect3/index.html" },
+  { name: "Cookie Clicker", emoji: "🍪", url: "https://3kh0isgood.github.io/projects/cookie-clicker/index.html" },
+  { name: "Core Ball", emoji: "🎯", url: "https://coreball.io/" },
+  { name: "Crossy Road", emoji: "🐔", url: "https://cro.vercel.app/" },
+  { name: "Deltarune", emoji: "❤️", url: "https://vocalnutria9174.github.io/deltarune_web/" },
+  { name: "DigDig.io", emoji: "⛏️", url: "https://digdig.io" },
+  { name: "Dinosaur Game", emoji: "🦖", url: "https://dinosaurgame.app/" },
+  { name: "Drift Boss", emoji: "🚗", url: "https://www.friv.cm/drift-boss/fullscreen/" },
+  { name: "Drive Mad", emoji: "🚗", url: "https://www.drivemad.com/index.html/" },
+  { name: "Duck Life", emoji: "🦆", url: "https://friv.cm/duck-life/fullscreen/" },
+  { name: "Duck Life 2", emoji: "🦆", url: "https://friv.cm/duck-life-2/fullscreen/" },
+  { name: "Duck Life 3 Evolution", emoji: "🦆", url: "https://www.friv.cm/duck-life-3-evolution/fullscreen/" },
+  { name: "Duck Life 4", emoji: "🦆", url: "https://www.friv.cm/duck-life-4/fullscreen/" },
+  { name: "Duck Life 5 Treasure Hunt", emoji: "🦆", url: "https://www.friv.cm/duck-life-5-treasure-hunt/fullscreen/" },
+  { name: "Duck Life 6 Space", emoji: "🦆", url: "https://www.friv.cm/duck-life-6-space/" },
+  { name: "Duck Life 7 Battle", emoji: "🦆", url: "https://friv.cm/duck-life-battle/fullscreen" },
+  { name: "Duck Life 8 Adventure", emoji: "🦆", url: "https://www.friv.cm/duck-life-adventure/fullscreen/" },
+  { name: "Eggy Car", emoji: "🥚", url: "https://www.friv.cm/eggy-car/fullscreen/" },
+  { name: "Elastic Man", emoji: "🧠", url: "https://d21u3ic0kp9e91.cloudfront.net/elasticman/0/index.html" },
+  { name: "Escape Road", emoji: "🛣️", url: "https://escape-road.vercel.app/" },
+  { name: "FAF Games", emoji: "🎮", url: "https://faf-games.github.io/" },
+  { name: "Fancade", emoji: "🕹️", url: "https://play.fancade.com/" },
+  { name: "Flappy Bird", emoji: "🐦", url: "https://flappybird.io/" },
+  { name: "FNAF 1", emoji: "🎃", url: "https://www.friv.cm/five-nights-at-freddys/fullscreen/" },
+  { name: "FNAF 2", emoji: "🎃", url: "https://www.friv.cm/five-nights-at-freddys-2/fullscreen/" },
+  { name: "FNAF 3", emoji: "🎃", url: "https://www.friv.cm/five-nights-at-freddys-3/fullscreen/" },
+  { name: "FNAF 4", emoji: "🎃", url: "https://www.friv.cm/five-nights-at-freddys-4/fullscreen/" },
+  { name: "FNF", emoji: "🎤", url: "https://www.friv.cm/friday-night-funkin/fullscreen/" },
+  { name: "FreezeNova", emoji: "❄️", url: "https://unblocked-games.s3.amazonaws.com/index.html" },
+  { name: "Fruit Ninja", emoji: "🍉", url: "https://www.friv.cm/fruit-ninja/fullscreen/" },
+  { name: "GameIs.net", emoji: "🌐", url: "https://gameis.net/" },
+  { name: "Gamenora", emoji: "🌐", url: "https://www.gamenora.com/" },
+  { name: "GamePix", emoji: "🌐", url: "https://www.gamepix.com/" },
+  { name: "GameSnacks", emoji: "🍿", url: "https://gamesnacks.com/" },
+  { name: "Geometry Dash", emoji: "📐", url: "https://geometrydash-lite.io/" },
+  { name: "Helix Jump", emoji: "🌀", url: "https://www.friv.cm/helix-jump/fullscreen/" },
+  { name: "Idle Breakout", emoji: "🧱", url: "https://www.friv.cm/idle-breakout/fullscreen/" },
+  { name: "Madalin Stunt Cars 2", emoji: "🚘", url: "https://www.friv.cm/madalin-stunt-cars-2/fullscreen/" },
+  { name: "Merge Cakes", emoji: "🍰", url: "https://www.friv.cm/merge-cakes/fullscreen/" },
+  { name: "Monkey Mart", emoji: "🛒", url: "https://www.friv.cm/monkey-mart/fullscreen/" },
+  { name: "Moto X3M", emoji: "🏍️", url: "https://www.friv.cm/moto-x3m/fullscreen/" },
+  { name: "Moto X3M 2", emoji: "🏍️", url: "https://www.friv.cm/moto-x3m-2/fullscreen/" },
+  { name: "Moto X3M 3", emoji: "🏍️", url: "https://www.friv.cm/moto-x3m-3/fullscreen/" },
+  { name: "Moto X3M 4 Winter", emoji: "❄️", url: "https://www.friv.cm/moto-x3m-4-winter/fullscreen/" },
+  { name: "Moto X3M 5 Pool Party", emoji: "🏖️", url: "https://www.friv.cm/moto-x3m-5-pool-party/fullscreen/" },
+  { name: "Moto X3M 6 Spooky", emoji: "🎃", url: "https://www.friv.cm/moto-x3m-6-spooky/fullscreen/" },
+  { name: "Paper.io", emoji: "📄", url: "https://www.friv.cm/paper-io/fullscreen/" },
+  { name: "Paper.io 2", emoji: "📄", url: "https://www.friv.cm/paper-io-2/fullscreen/" },
+  { name: "Parking Fury", emoji: "🅿️", url: "https://www.friv.cm/parking-fury/fullscreen/" },
+  { name: "Parking Fury 2", emoji: "🅿️", url: "https://www.friv.cm/parking-fury-2/fullscreen/" },
+  { name: "Parking Fury 3", emoji: "🅿️", url: "https://www.friv.cm/parking-fury-3/fullscreen/" },
+  { name: "Retro Bowl", emoji: "🏈", url: "https://www.friv.cm/retro-bowl/fullscreen/" },
+  { name: "Rooftop Snipers", emoji: "🔫", url: "https://www.friv.cm/rooftop-snipers/fullscreen/" },
+  { name: "Run", emoji: "🏃", url: "https://www.friv.cm/run/fullscreen/" },
+  { name: "Shell Shockers", emoji: "💣", url: "https://www.friv.cm/shell-shockers/fullscreen/" },
+  { name: "Slope", emoji: "🌌", url: "https://www.friv.cm/slope/fullscreen/" },
+  { name: "Smash Karts", emoji: "🏎️", url: "https://www.friv.cm/smash-karts/fullscreen/" },
+  { name: "Stickman Hook", emoji: "🪝", url: "https://banana-livid.vercel.app/lbannana-assets/html/stickman-hook/index.html" },
+  { name: "Temple Run", emoji: "🏃", url: "https://www.friv.cm/temple-run/fullscreen/" },
+  { name: "Tunnel Rush", emoji: "🌪️", url: "https://www.friv.cm/tunnel-rush/fullscreen/" },
+  { name: "Wordle", emoji: "🔤", url: "https://wordle-vanilla.vercel.app/" },
+  { name: "Zombs Royale", emoji: "🧟", url: "https://www.friv.cm/zombs-royale/fullscreen/" }
+];
+
+/* ---------------- FAVORITES ---------------- */
+
+let favs = JSON.parse(localStorage.getItem("supernova_game_favs") || "[]");
+
+function saveFavs() {
+  localStorage.setItem("supernova_game_favs", JSON.stringify(favs));
+}
+
+/* ---------------- RENDER GAMES GRID ---------------- */
+
+function renderGamesGrid() {
+  const grid = document.getElementById("gamesGrid");
+  const content = document.getElementById("gamesContent");
+  const title = document.getElementById("gamesTitle");
+
+  if (!grid || !content || !title) return;
+
+  isGameOpen = false; // ← grid mode
+
+  title.textContent = "Games";
+  title.style.cursor = "default";
+  title.onclick = null;
+
+  content.innerHTML = "";
+  content.appendChild(grid);
+  grid.innerHTML = "";
+
+  GAMES.forEach(game => {
+    const card = document.createElement("div");
+    card.style.padding = "10px";
+    card.style.borderRadius = "10px";
+    card.style.border = "1px solid rgba(255,255,255,0.08)";
+    card.style.background = "rgba(15,23,42,0.9)";
+    card.style.display = "flex";
+    card.style.flexDirection = "column";
+    card.style.gap = "6px";
+    card.style.cursor = "pointer";
+    card.style.transition = "transform 0.15s, box-shadow 0.15s";
+
+    card.onmouseenter = () => {
+      card.style.transform = "translateY(-2px)";
+      card.style.boxShadow = "0 10px 25px rgba(0,0,0,0.45)";
+    };
+    card.onmouseleave = () => {
+      card.style.transform = "none";
+      card.style.boxShadow = "none";
+    };
+
+    const top = document.createElement("div");
+    top.style.display = "flex";
+    top.style.justifyContent = "space-between";
+    top.style.alignItems = "center";
+
+    const left = document.createElement("div");
+    left.style.display = "flex";
+    left.style.alignItems = "center";
+    left.style.gap = "8px";
+
+    const icon = document.createElement("div");
+    icon.textContent = game.emoji || "🎮";
+    icon.style.fontSize = "1.4rem";
+
+    const name = document.createElement("div");
+    name.textContent = game.name;
+    name.style.fontSize = "0.9rem";
+
+    left.appendChild(icon);
+    left.appendChild(name);
+
+    const fav = document.createElement("button");
+    fav.textContent = favs.includes(game.name) ? "★" : "☆";
+    fav.style.border = "none";
+    fav.style.background = "transparent";
+    fav.style.color = "#facc15";
+    fav.style.cursor = "pointer";
+    fav.style.fontSize = "1.1rem";
+
+    fav.onclick = (e) => {
+      e.stopPropagation();
+      if (favs.includes(game.name)) {
+        favs = favs.filter(f => f !== game.name);
+      } else {
+        favs.push(game.name);
+      }
+      saveFavs();
+      renderGamesGrid();
+    };
+
+    top.appendChild(left);
+    top.appendChild(fav);
+
+    const play = document.createElement("button");
+    play.textContent = "Play";
+    play.style.marginTop = "4px";
+    play.style.padding = "6px 8px";
+    play.style.borderRadius = "8px";
+    play.style.border = "1px solid rgba(255,255,255,0.12)";
+    play.style.background = "rgba(37,99,235,0.9)";
+    play.style.color = "white";
+    play.style.fontSize = "0.8rem";
+    play.style.cursor = "pointer";
+
+    play.onclick = (e) => {
+      e.stopPropagation();
+      openGameInsideWindow(game);
+    };
+
+    card.onclick = () => {
+      openGameInsideWindow(game);
+    };
+
+    card.appendChild(top);
+    card.appendChild(play);
+    grid.appendChild(card);
+  });
+}
+
+/* ---------------- OPEN GAME INSIDE WINDOW ---------------- */
+
+function openGameInsideWindow(game) {
+  const content = document.getElementById("gamesContent");
+  const title = document.getElementById("gamesTitle");
+  if (!content || !title) return;
+
+  isGameOpen = true; // ← game mode
+
+  title.textContent = game.name;
+  title.style.cursor = "default";
+  title.onclick = null;
+
+  content.innerHTML = `
+    <iframe src="${game.url}" style="width:100%;height:100%;border:none;"></iframe>
+  `;
+}
+
+/* ---------------- INITIALIZE ---------------- */
+
+renderGamesGrid();
+</script>
+
+</body>
+</html>
