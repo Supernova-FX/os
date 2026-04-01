@@ -380,8 +380,14 @@
     <span id="gamesTitle">Games</span>
   </div>
 
-  <div class="window-content" id="gamesContent" style="padding:0;">
-    <div id="gamesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:12px;overflow:auto;"></div>
+  <!-- SCROLLING FIX APPLIED HERE -->
+  <div class="window-content" id="gamesContent" style="padding:0; overflow-y:auto; height:calc(100% - 34px);">
+    <div id="gamesGrid" style="
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+      gap:12px;
+      padding:12px;
+    "></div>
   </div>
 </div>
 
