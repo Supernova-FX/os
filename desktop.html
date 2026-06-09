@@ -71,19 +71,19 @@
   }
 
   .icon-blob {
-    width: 46px;
-    height: 46px;
-    border-radius: 18px;
+    width: 64px;
+    height: 64px;
+    border-radius: 24px;
     background: radial-gradient(circle at 0% 0%, rgba(255,255,255,0.18), transparent 55%),
                 linear-gradient(135deg, var(--icon-grad-1), var(--icon-grad-2));
     box-shadow:
-      0 0 18px rgba(0,0,0,0.6),
-      0 0 22px rgba(123,92,255,0.55);
+      0 0 22px rgba(0,0,0,0.7),
+      0 0 30px rgba(123,92,255,0.65);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #f9fafb;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     font-weight: 600;
     position: relative;
     overflow: hidden;
@@ -184,7 +184,6 @@
     min-width: 82px;
     text-align: center;
   }
-
   /* Dock */
 
   .dock {
@@ -196,6 +195,16 @@
     gap: 18px;
     padding: 12px 18px;
     border-radius: 20px;
+  }
+
+  .dock.glass-surface {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.35);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    box-shadow:
+      0 18px 40px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(255,255,255,0.18);
   }
 
   .dock-item {
@@ -719,6 +728,16 @@
     font-size: 0.9rem;
   }
 
+  .widget-card.weather-card {
+    background: linear-gradient(135deg, #1d4ed8, #38bdf8);
+    border-color: rgba(255,255,255,0.4);
+    color: #e5f2ff;
+  }
+
+  .widget-card.weather-card .widget-title {
+    color: rgba(239,246,255,0.9);
+  }
+
   /* Desktop root wrapper */
 
   #desktopRoot {
@@ -756,7 +775,7 @@
         <span>Widgets</span>
       </button>
       <button class="topbar-button" id="launchToggle">
-        <span>Launch</span>
+        <span>Apps</span>
       </button>
       <div class="topbar-clock" id="desktopClock">00:00:00</div>
       <button class="topbar-button" id="lockButton">
@@ -780,6 +799,20 @@
         --
       </div>
     </div>
+    <div class="widget-card weather-card">
+      <div class="widget-title">Weather</div>
+      <div class="widget-main" id="widgetWeather">
+        <div id="weatherLocation">Location</div>
+        <div style="margin-top:6px;font-size:1.4rem;display:flex;align-items:baseline;gap:6px;">
+          <span id="weatherIcon">☁️</span>
+          <span id="weatherTemp">--°</span>
+        </div>
+        <div id="weatherCond" style="margin-top:2px;font-size:0.85rem;">Waiting for permission…</div>
+        <div id="weatherMeta" style="margin-top:4px;font-size:0.7rem;opacity:0.9;">
+          Powered by Open‑Meteo
+        </div>
+      </div>
+    </div>
     <div class="widget-card">
       <div class="widget-title">Notes preview</div>
       <div class="widget-main" id="widgetNotes">
@@ -787,7 +820,6 @@
       </div>
     </div>
   </div>
-
   <div id="launcherOverlay">
     <div class="launcher-panel glass-strong">
       <div class="launcher-header">
@@ -962,6 +994,11 @@
   </div>
 
   <div class="dock glass-surface">
+    <div class="dock-item" id="dockLaunch">
+      <div class="icon-blob"><span class="icon-glyph">⌘</span></div>
+      <span>Apps</span>
+    </div>
+
     <div class="dock-item" onclick="openWindow('fxWin')">
       <div class="icon-blob"><span class="icon-glyph">G</span></div>
       <span>Games</span>
@@ -990,11 +1027,6 @@
     <div class="dock-item" onclick="openWindow('notesWin')">
       <div class="icon-blob"><span class="icon-glyph">✎</span></div>
       <span>Notes</span>
-    </div>
-
-    <div class="dock-item" id="dockLaunch">
-      <div class="icon-blob"><span class="icon-glyph">⌘</span></div>
-      <span>Launch</span>
     </div>
   </div>
 <script>
@@ -1286,6 +1318,95 @@ function pushNotification(title, body, timeout = 3500) {
     setTimeout(() => note.remove(), 200);
   }, timeout);
 }
+/* Weather widget (Open-Meteo + geolocation) */
+
+const weatherLocationEl = document.getElementById('weatherLocation');
+const weatherTempEl = document.getElementById('weatherTemp');
+const weatherCondEl = document.getElementById('weatherCond');
+const weatherMetaEl = document.getElementById('weatherMeta');
+const weatherIconEl = document.getElementById('weatherIcon');
+
+function mapWeatherCodeToIcon(code) {
+  if (code === 0) return '☀️';
+  if (code === 1 || code === 2) return '🌤️';
+  if (code === 3) return '☁️';
+  if (code >= 45 && code <= 48) return '🌫️';
+  if (code >= 51 && code <= 67) return '🌧️';
+  if (code >= 71 && code <= 77) return '❄️';
+  if (code >= 80 && code <= 82) return '🌧️';
+  if (code >= 95 && code <= 99) return '⛈️';
+  return '☁️';
+}
+
+function mapWeatherCodeToText(code) {
+  if (code === 0) return 'Clear sky';
+  if (code === 1) return 'Mainly clear';
+  if (code === 2) return 'Partly cloudy';
+  if (code === 3) return 'Overcast';
+  if (code === 45 || code === 48) return 'Fog';
+  if (code >= 51 && code <= 55) return 'Drizzle';
+  if (code >= 56 && code <= 57) return 'Freezing drizzle';
+  if (code >= 61 && code <= 65) return 'Rain';
+  if (code >= 66 && code <= 67) return 'Freezing rain';
+  if (code >= 71 && code <= 75) return 'Snow';
+  if (code === 77) return 'Snow grains';
+  if (code >= 80 && code <= 82) return 'Rain showers';
+  if (code >= 85 && code <= 86) return 'Snow showers';
+  if (code >= 95 && code <= 99) return 'Thunderstorm';
+  return 'Unknown';
+}
+
+function setWeatherStatus(text, meta) {
+  if (weatherCondEl) weatherCondEl.textContent = text;
+  if (weatherMetaEl) weatherMetaEl.textContent = meta || 'Powered by Open-Meteo';
+}
+
+async function fetchWeatherForCoords(lat, lon) {
+  try {
+    setWeatherStatus('Loading…', 'Powered by Open-Meteo');
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Network error');
+    const data = await res.json();
+    const cw = data.current_weather;
+    const temp = Math.round(cw.temperature);
+    const code = cw.weathercode;
+
+    if (weatherTempEl) weatherTempEl.textContent = `${temp}°`;
+    if (weatherIconEl) weatherIconEl.textContent = mapWeatherCodeToIcon(code);
+    if (weatherCondEl) weatherCondEl.textContent = mapWeatherCodeToText(code);
+    if (weatherMetaEl) weatherMetaEl.textContent = `Powered by Open-Meteo • ${cw.time}`;
+    if (weatherLocationEl) weatherLocationEl.textContent = 'Your location';
+  } catch (e) {
+    setWeatherStatus('Weather unavailable', 'Check connection or API.');
+  }
+}
+
+function requestWeather() {
+  if (!navigator.geolocation) {
+    setWeatherStatus('Geolocation not supported', 'Weather unavailable.');
+    return;
+  }
+
+  setWeatherStatus('Waiting for permission…', 'Allow location to see weather.');
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      fetchWeatherForCoords(latitude, longitude);
+    },
+    (err) => {
+      if (err.code === err.PERMISSION_DENIED) {
+        setWeatherStatus('Location permission denied', 'Enable location access in browser settings.');
+      } else {
+        setWeatherStatus('Unable to get location', 'Try again later.');
+      }
+    }
+  );
+}
+
+requestWeather();
+setInterval(requestWeather, 15 * 60 * 1000);
 /***** Games + favorites *****/
 
 const GAMES = [
