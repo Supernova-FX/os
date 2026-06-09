@@ -9,12 +9,14 @@
     --accent: #7b5cff;
     --text-main: #f5f5ff;
     --text-muted: #9ca3c7;
-    --border: rgba(255,255,255,0.08);
-    --window-bg: rgba(10,12,25,0.9);
-    --window-blur: blur(14px);
+    --border: rgba(255,255,255,0.12);
+    --window-bg: rgba(10,12,25,0.55);
+    --glass-bg: rgba(10,12,25,0.55);
+    --glass-strong: rgba(10,12,25,0.7);
+    --window-blur: blur(26px);
+    --icon-grad-1: #7b5cff;
+    --icon-grad-2: #22d3ee;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
     height: 100vh;
@@ -27,31 +29,163 @@
 
   body.theme-nebula {
     --accent: #7b5cff;
+    --icon-grad-1: #7b5cff;
+    --icon-grad-2: #22d3ee;
     background: url("https://images.hdqwalls.com/wallpapers/nebula-5k-oj.jpg") center/cover no-repeat fixed;
   }
 
   body.theme-eclipse {
     --accent: #f97316;
+    --icon-grad-1: #f97316;
+    --icon-grad-2: #ec4899;
     background: url("https://wallpaperaccess.com/full/1416639.jpg") center/cover no-repeat fixed;
   }
 
   body.theme-aurora {
     --accent: #22c55e;
+    --icon-grad-1: #22c55e;
+    --icon-grad-2: #0ea5e9;
     background: url("https://images.hdqwalls.com/wallpapers/aurora-borealis-northern-lights-4k-kr.jpg") center/cover no-repeat fixed;
   }
 
-  .desktop-clock {
-    position: absolute;
-    top: 18px;
-    right: 24px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: rgba(5,7,18,0.7);
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  .glass-surface {
+    background: var(--glass-bg);
     border: 1px solid var(--border);
+    backdrop-filter: blur(26px) saturate(160%);
+    -webkit-backdrop-filter: blur(26px) saturate(160%);
+    box-shadow:
+      0 18px 40px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(255,255,255,0.02);
+  }
+
+  .glass-strong {
+    background: var(--glass-strong);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    box-shadow:
+      0 22px 60px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(255,255,255,0.03);
+  }
+
+  .icon-blob {
+    width: 46px;
+    height: 46px;
+    border-radius: 18px;
+    background: radial-gradient(circle at 0% 0%, rgba(255,255,255,0.18), transparent 55%),
+                linear-gradient(135deg, var(--icon-grad-1), var(--icon-grad-2));
+    box-shadow:
+      0 0 18px rgba(0,0,0,0.6),
+      0 0 22px rgba(123,92,255,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f9fafb;
+    font-size: 1.3rem;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .icon-blob::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, rgba(255,255,255,0.22), transparent 55%);
+    mix-blend-mode: screen;
+    opacity: 0.7;
+  }
+
+  .icon-glyph {
+    position: relative;
+    z-index: 1;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f9fafb;
+  }
+
+  /* Top bar */
+
+  .topbar {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(960px, 100% - 32px);
+    height: 40px;
+    border-radius: 999px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .topbar-logo-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 30%, #e5e7eb, #7b5cff);
+    box-shadow: 0 0 12px rgba(123,92,255,0.9);
+  }
+
+  .topbar-center {
     font-size: 0.8rem;
     color: var(--text-muted);
-    backdrop-filter: blur(12px);
+    text-align: center;
+    flex: 1;
   }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+  }
+
+  .topbar-button {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: radial-gradient(circle at 0% 0%, rgba(255,255,255,0.18), transparent 55%),
+                rgba(15,23,42,0.7);
+    color: var(--text-main);
+    cursor: pointer;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, background 0.12s ease-out;
+  }
+
+  .topbar-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.55);
+    background: radial-gradient(circle at 0% 0%, rgba(255,255,255,0.22), transparent 55%),
+                rgba(15,23,42,0.85);
+  }
+
+  .topbar-clock {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(15,23,42,0.7);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    min-width: 82px;
+    text-align: center;
+  }
+
+  /* Dock */
 
   .dock {
     position: absolute;
@@ -59,12 +193,9 @@
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 22px;
-    padding: 14px 22px;
-    background: rgba(5,7,18,0.7);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    backdrop-filter: blur(14px);
+    gap: 18px;
+    padding: 12px 18px;
+    border-radius: 20px;
   }
 
   .dock-item {
@@ -73,38 +204,37 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.18s ease-out, filter 0.18s ease-out;
   }
 
   .dock-item:hover {
-    transform: scale(1.25);
-  }
-
-  .dock-item img {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    transform: translateY(-4px) scale(1.06);
+    filter: drop-shadow(0 12px 26px rgba(0,0,0,0.7));
   }
 
   .dock-item span {
     margin-top: 6px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
   }
 
-  .dock-item.playing img {
-    box-shadow: 0 0 18px var(--accent);
+  .dock-item.playing .icon-blob {
+    box-shadow:
+      0 0 22px var(--accent),
+      0 0 32px rgba(123,92,255,0.9);
   }
 
   .dock-item.playing::after {
     content: "";
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     background: var(--accent);
     border-radius: 50%;
     position: absolute;
     bottom: -4px;
   }
+
+  /* Windows */
 
   .window {
     position: absolute;
@@ -112,21 +242,17 @@
     left: 120px;
     width: 520px;
     height: 360px;
-    background: var(--window-bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    backdrop-filter: var(--window-blur);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    border-radius: 14px;
     display: none;
     overflow: hidden;
     opacity: 0;
-    transform: scale(0.92);
+    transform: scale(0.92) translateY(6px);
     transition: opacity 0.25s ease, transform 0.25s ease;
   }
 
   .window.open {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
 
   .window.small { width: 320px; height: 220px; }
@@ -134,9 +260,9 @@
 
   .titlebar {
     height: 34px;
-    background: rgba(255,255,255,0.06);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(15,23,42,0.9));
     border-bottom: 1px solid var(--border);
-    border-radius: 12px 12px 0 0;
+    border-radius: 14px 14px 0 0;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -161,6 +287,7 @@
     height: 12px;
     border-radius: 50%;
     cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(15,23,42,0.9);
   }
 
   .close { background: #ef4444; }
@@ -172,13 +299,15 @@
     height: calc(100% - 34px);
     font-size: 0.85rem;
     color: var(--text-main);
+    background: radial-gradient(circle at 0% 0%, rgba(255,255,255,0.06), transparent 55%),
+                rgba(10,12,25,0.8);
   }
 
   iframe {
     width: 100%;
     height: 100%;
     border: none;
-    border-radius: 0 0 12px 12px;
+    border-radius: 0 0 14px 14px;
   }
 
   .game-loader {
@@ -216,7 +345,7 @@
   .calc-display {
     width: 100%;
     padding: 8px 10px;
-    border-radius: 8px;
+    border-radius: 10px;
     border: 1px solid var(--border);
     background: rgba(15,23,42,0.9);
     font-size: 1.1rem;
@@ -234,13 +363,13 @@
 
   .calc-btn {
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 10px;
     border: 1px solid var(--border);
     background: rgba(15,23,42,0.9);
     cursor: pointer;
     font-size: 0.9rem;
     text-align: center;
-    transition: background 0.12s ease-out, transform 0.12s ease-out;
+    transition: background 0.12s ease-out, transform 0.12s ease-out, box-shadow 0.12s ease-out;
   }
 
   .calc-btn.op { color: var(--accent); }
@@ -248,12 +377,13 @@
   .calc-btn:hover {
     background: rgba(30,64,175,0.9);
     transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.6);
   }
 
   .terminal-output {
     height: calc(100% - 40px);
     background: #020617;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 8px;
     font-family: "JetBrains Mono", ui-monospace;
     font-size: 0.75rem;
@@ -343,12 +473,13 @@
     color: #fee2e2;
     font-size: 0.8rem;
     cursor: pointer;
-    transition: background 0.12s ease-out, transform 0.12s ease-out;
+    transition: background 0.12s ease-out, transform 0.12s ease-out, box-shadow 0.12s ease-out;
   }
 
   .clear-cache-btn:hover {
     background: rgba(185,28,28,0.95);
     transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.6);
   }
 
   .notes-textarea {
@@ -364,186 +495,512 @@
     font-size: 0.85rem;
     font-family: system-ui, sans-serif;
   }
+  /* Lock screen */
+
+  #lockScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 0% 0%, rgba(255,255,255,0.08), transparent 55%),
+                rgba(3,7,18,0.85);
+    backdrop-filter: blur(26px) saturate(160%);
+    -webkit-backdrop-filter: blur(26px) saturate(160%);
+  }
+
+  .lock-card {
+    width: 320px;
+    max-width: 90vw;
+    border-radius: 24px;
+    padding: 22px 20px 18px;
+    text-align: center;
+  }
+
+  .lock-user-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 999px;
+    margin: 0 auto 10px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(148,163,184,0.4));
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.35),
+      0 0 26px rgba(15,23,42,0.9);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lock-user-icon::before {
+    content: "";
+    position: absolute;
+    inset: 18% 22% 40%;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.9);
+  }
+
+  .lock-user-icon::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 12%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 32%;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.9);
+  }
+
+  .lock-user-label {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+
+  .lock-time {
+    font-size: 2.1rem;
+    font-weight: 600;
+  }
+
+  .lock-date {
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .lock-input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,0.9);
+    color: var(--text-main);
+    font-size: 0.85rem;
+    outline: none;
+    text-align: center;
+  }
+
+  .lock-error {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: #fca5a5;
+    min-height: 1em;
+  }
+
+  /* Launcher */
+
+  #launcherOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 6000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .launcher-panel {
+    width: min(880px, 100% - 40px);
+    height: calc(100vh - 140px);
+    border-radius: 26px;
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+  }
+
+  .launcher-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .launcher-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 18px;
+    padding-top: 6px;
+  }
+
+  .launcher-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.16s ease-out, filter 0.16s ease-out;
+  }
+
+  .launcher-item:hover {
+    transform: translateY(-4px) scale(1.04);
+    filter: drop-shadow(0 14px 30px rgba(0,0,0,0.75));
+  }
+
+  .launcher-label {
+    font-size: 0.8rem;
+    color: var(--text-main);
+  }
+
+  /* Notifications */
+
+  #notificationStack {
+    position: fixed;
+    top: 60px;
+    right: 18px;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 6500;
+  }
+
+  .notification {
+    border-radius: 16px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  }
+
+  .notification.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .notification-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .notification-body {
+    color: var(--text-muted);
+  }
+
+  /* Widgets */
+
+  #widgetsPanel {
+    position: fixed;
+    top: 60px;
+    right: 18px;
+    width: 320px;
+    max-height: calc(100vh - 90px);
+    border-radius: 20px;
+    padding: 12px 12px 10px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 6400;
+  }
+
+  .widget-card {
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: radial-gradient(circle at 0% 0%, rgba(255,255,255,0.08), transparent 55%),
+                rgba(15,23,42,0.9);
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+
+  .widget-title {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .widget-main {
+    font-size: 0.9rem;
+  }
+
+  /* Desktop root wrapper */
+
+  #desktopRoot {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
 </style>
 </head>
 <body class="theme-nebula">
 
-<div class="desktop-clock" id="desktopClock"></div>
-
-<div id="fxWin" class="window">
-  <div class="titlebar">
-    <div class="controls">
-      <div class="close"></div>
-      <div class="min"></div>
-      <div class="max"></div>
-    </div>
-    <span id="gamesTitle">Games</span>
-  </div>
-
-  <!-- SCROLLING FIX APPLIED HERE -->
-  <div class="window-content" id="gamesContent" style="padding:0; overflow-y:auto; height:calc(100% - 34px);">
-    <div id="gamesGrid" style="
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-      gap:12px;
-      padding:12px;
-    "></div>
+<div id="lockScreen">
+  <div class="lock-card glass-strong">
+    <div class="lock-user-icon"></div>
+    <div class="lock-user-label">User</div>
+    <div class="lock-time" id="lockTime">00:00</div>
+    <div class="lock-date" id="lockDate">Loading...</div>
+    <input id="lockInput" class="lock-input" type="password" placeholder="Enter password" autocomplete="off" />
+    <div class="lock-error" id="lockError"></div>
   </div>
 </div>
 
-<div id="clockWin" class="window small">
-  <div class="titlebar">
-    <div class="controls">
-      <div class="close"></div>
-      <div class="min"></div>
-      <div class="max"></div>
+<div id="desktopRoot" style="display:none;">
+
+  <div class="topbar glass-surface">
+    <div class="topbar-left">
+      <div class="topbar-logo-dot"></div>
+      <span>Supernova OS</span>
     </div>
-    <span>Clock</span>
-  </div>
-  <div class="window-content">
-    <div class="clock-display" id="clockDisplay">00:00</div>
-    <div class="clock-date" id="clockDate">Loading...</div>
-  </div>
-</div>
-
-<div id="calcWin" class="window medium">
-  <div class="titlebar">
-    <div class="controls">
-      <div class="close"></div>
-      <div class="min"></div>
-      <div class="max"></div>
+    <div class="topbar-center" id="topbarCenterText">
+      Desktop
     </div>
-    <span>Calc</span>
-  </div>
-  <div class="window-content">
-    <input id="calcDisplay" class="calc-display" type="text" value="0" readonly />
-    <div class="calc-grid">
-      <button class="calc-btn" data-key="C">C</button>
-      <button class="calc-btn" data-key="←">←</button>
-      <button class="calc-btn op" data-key="/">÷</button>
-      <button class="calc-btn op" data-key="*">×</button>
-
-      <button class="calc-btn" data-key="7">7</button>
-      <button class="calc-btn" data-key="8">8</button>
-      <button class="calc-btn" data-key="9">9</button>
-      <button class="calc-btn op" data-key="-">−</button>
-
-      <button class="calc-btn" data-key="4">4</button>
-      <button class="calc-btn" data-key="5">5</button>
-      <button class="calc-btn" data-key="6">6</button>
-      <button class="calc-btn op" data-key="+">+</button>
-
-      <button class="calc-btn" data-key="1">1</button>
-      <button class="calc-btn" data-key="2">2</button>
-      <button class="calc-btn" data-key="3">3</button>
-      <button class="calc-btn op" data-key="=">=</button>
-
-      <button class="calc-btn" data-key="0" style="grid-column: span 2;">0</button>
-      <button class="calc-btn" data-key=".">.</button>
-      <button class="calc-btn" data-key="%">%</button>
+    <div class="topbar-right">
+      <button class="topbar-button" id="widgetsToggle">
+        <span>Widgets</span>
+      </button>
+      <button class="topbar-button" id="launchToggle">
+        <span>Launch</span>
+      </button>
+      <div class="topbar-clock" id="desktopClock">00:00:00</div>
+      <button class="topbar-button" id="lockButton">
+        <span>Lock</span>
+      </button>
     </div>
   </div>
-</div>
 
-<div id="termWin" class="window">
-  <div class="titlebar">
-    <div class="controls">
-      <div class="close"></div>
-      <div class="min"></div>
-      <div class="max"></div>
-    </div>
-    <span>Terminal</span>
-  </div>
-  <div class="window-content">
-    <div class="terminal-output" id="termOutput"></div>
-    <div class="terminal-input-row">
-      <span>guest@supernova:~$</span>
-      <input id="termInput" type="text" autocomplete="off" />
-    </div>
-  </div>
-</div>
+  <div id="notificationStack"></div>
 
-<div id="themeWin" class="window medium">
-  <div class="titlebar">
-    <div class="controls">
-      <div class="close"></div>
-      <div class="min"></div>
-      <div class="max"></div>
-    </div>
-    <span>Themes</span>
-  </div>
-  <div class="window-content">
-    <div class="theme-grid">
-      <div class="theme-card" data-theme="theme-nebula">
-        <div class="theme-preview nebula"></div>
-        Nebula
-      </div>
-
-      <div class="theme-card" data-theme="theme-eclipse">
-        <div class="theme-preview eclipse"></div>
-        Eclipse
-      </div>
-
-      <div class="theme-card" data-theme="theme-aurora">
-        <div class="theme-preview aurora"></div>
-        Aurora
+  <div id="widgetsPanel" class="glass-surface">
+    <div class="widget-card">
+      <div class="widget-title">System</div>
+      <div class="widget-main" id="widgetSystem">
+        Supernova OS — Web Desktop
       </div>
     </div>
-
-    <button class="clear-cache-btn" id="clearCacheBtn">
-      Clear local data (theme + notes)
-    </button>
-  </div>
-</div>
-
-<div id="notesWin" class="window">
-  <div class="titlebar">
-    <div class="controls">
-      <div class="close"></div>
-      <div class="min"></div>
-      <div class="max"></div>
+    <div class="widget-card">
+      <div class="widget-title">Time</div>
+      <div class="widget-main" id="widgetTime">
+        --
+      </div>
     </div>
-    <span>Notes</span>
-  </div>
-  <div class="window-content">
-    <textarea id="notesArea" class="notes-textarea"></textarea>
-  </div>
-</div>
-
-<div class="dock">
-  <div class="dock-item" onclick="openWindow('fxWin')">
-    <img src="https://img.icons8.com/neon/512/controller.png">
-    <span>Games</span>
+    <div class="widget-card">
+      <div class="widget-title">Notes preview</div>
+      <div class="widget-main" id="widgetNotes">
+        No notes yet.
+      </div>
+    </div>
   </div>
 
-  <div class="dock-item" onclick="openWindow('clockWin')">
-    <img src="https://img.icons8.com/neon/512/clock.png">
-    <span>Clock</span>
+  <div id="launcherOverlay">
+    <div class="launcher-panel glass-strong">
+      <div class="launcher-header">
+        <span>Launchpad</span>
+        <span style="font-size:0.75rem;color:var(--text-muted);">Press Esc or click outside to close</span>
+      </div>
+      <div class="launcher-grid" id="launcherGrid">
+        <div class="launcher-item" data-target="fxWin">
+          <div class="icon-blob"><span class="icon-glyph">G</span></div>
+          <div class="launcher-label">Games</div>
+        </div>
+        <div class="launcher-item" data-target="clockWin">
+          <div class="icon-blob"><span class="icon-glyph">⏱</span></div>
+          <div class="launcher-label">Clock</div>
+        </div>
+        <div class="launcher-item" data-target="calcWin">
+          <div class="icon-blob"><span class="icon-glyph">≡</span></div>
+          <div class="launcher-label">Calculator</div>
+        </div>
+        <div class="launcher-item" data-target="termWin">
+          <div class="icon-blob"><span class="icon-glyph">&gt;_</span></div>
+          <div class="launcher-label">Terminal</div>
+        </div>
+        <div class="launcher-item" data-target="themeWin">
+          <div class="icon-blob"><span class="icon-glyph">🎨</span></div>
+          <div class="launcher-label">Themes</div>
+        </div>
+        <div class="launcher-item" data-target="notesWin">
+          <div class="icon-blob"><span class="icon-glyph">✎</span></div>
+          <div class="launcher-label">Notes</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="dock-item" onclick="openWindow('calcWin')">
-    <img src="https://img.icons8.com/neon/512/calculator.png">
-    <span>Calc</span>
+  <div id="fxWin" class="window glass-surface">
+    <div class="titlebar">
+      <div class="controls">
+        <div class="close"></div>
+        <div class="min"></div>
+        <div class="max"></div>
+      </div>
+      <span id="gamesTitle">Games</span>
+    </div>
+    <div class="window-content" id="gamesContent" style="padding:0; overflow-y:auto; height:calc(100% - 34px);">
+      <div id="gamesGrid" style="
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+        gap:12px;
+        padding:12px;
+      "></div>
+    </div>
   </div>
 
-  <div class="dock-item" onclick="openWindow('termWin')">
-    <img src="https://img.icons8.com/neon/512/console.png">
-    <span>Terminal</span>
+  <div id="clockWin" class="window small glass-surface">
+    <div class="titlebar">
+      <div class="controls">
+        <div class="close"></div>
+        <div class="min"></div>
+        <div class="max"></div>
+      </div>
+      <span>Clock</span>
+    </div>
+    <div class="window-content">
+      <div class="clock-display" id="clockDisplay">00:00</div>
+      <div class="clock-date" id="clockDate">Loading...</div>
+    </div>
   </div>
 
-  <div class="dock-item" onclick="openWindow('themeWin')">
-    <img src="https://img.icons8.com/neon/512/color-palette.png">
-    <span>Themes</span>
+  <div id="calcWin" class="window medium glass-surface">
+    <div class="titlebar">
+      <div class="controls">
+        <div class="close"></div>
+        <div class="min"></div>
+        <div class="max"></div>
+      </div>
+      <span>Calc</span>
+    </div>
+    <div class="window-content">
+      <input id="calcDisplay" class="calc-display" type="text" value="0" readonly />
+      <div class="calc-grid">
+        <button class="calc-btn" data-key="C">C</button>
+        <button class="calc-btn" data-key="←">←</button>
+        <button class="calc-btn op" data-key="/">÷</button>
+        <button class="calc-btn op" data-key="*">×</button>
+
+        <button class="calc-btn" data-key="7">7</button>
+        <button class="calc-btn" data-key="8">8</button>
+        <button class="calc-btn" data-key="9">9</button>
+        <button class="calc-btn op" data-key="-">−</button>
+
+        <button class="calc-btn" data-key="4">4</button>
+        <button class="calc-btn" data-key="5">5</button>
+        <button class="calc-btn" data-key="6">6</button>
+        <button class="calc-btn op" data-key="+">+</button>
+
+        <button class="calc-btn" data-key="1">1</button>
+        <button class="calc-btn" data-key="2">2</button>
+        <button class="calc-btn" data-key="3">3</button>
+        <button class="calc-btn op" data-key="=">=</button>
+
+        <button class="calc-btn" data-key="0" style="grid-column: span 2;">0</button>
+        <button class="calc-btn" data-key=".">.</button>
+        <button class="calc-btn" data-key="%">%</button>
+      </div>
+    </div>
   </div>
 
-  <div class="dock-item" onclick="openWindow('notesWin')">
-    <img src="https://img.icons8.com/neon/512/todo-list.png">
-    <span>Notes</span>
+  <div id="termWin" class="window glass-surface">
+    <div class="titlebar">
+      <div class="controls">
+        <div class="close"></div>
+        <div class="min"></div>
+        <div class="max"></div>
+      </div>
+      <span>Terminal</span>
+    </div>
+    <div class="window-content">
+      <div class="terminal-output" id="termOutput"></div>
+      <div class="terminal-input-row">
+        <span>guest@supernova:~$</span>
+        <input id="termInput" type="text" autocomplete="off" />
+      </div>
+    </div>
   </div>
-</div>
+
+  <div id="themeWin" class="window medium glass-surface">
+    <div class="titlebar">
+      <div class="controls">
+        <div class="close"></div>
+        <div class="min"></div>
+        <div class="max"></div>
+      </div>
+      <span>Themes</span>
+    </div>
+    <div class="window-content">
+      <div class="theme-grid">
+        <div class="theme-card" data-theme="theme-nebula">
+          <div class="theme-preview nebula"></div>
+          Nebula
+        </div>
+
+        <div class="theme-card" data-theme="theme-eclipse">
+          <div class="theme-preview eclipse"></div>
+          Eclipse
+        </div>
+
+        <div class="theme-card" data-theme="theme-aurora">
+          <div class="theme-preview aurora"></div>
+          Aurora
+        </div>
+      </div>
+
+      <button class="clear-cache-btn" id="clearCacheBtn">
+        Clear local data (theme + notes)
+      </button>
+    </div>
+  </div>
+
+  <div id="notesWin" class="window glass-surface">
+    <div class="titlebar">
+      <div class="controls">
+        <div class="close"></div>
+        <div class="min"></div>
+        <div class="max"></div>
+      </div>
+      <span>Notes</span>
+    </div>
+    <div class="window-content">
+      <textarea id="notesArea" class="notes-textarea"></textarea>
+    </div>
+  </div>
+
+  <div class="dock glass-surface">
+    <div class="dock-item" onclick="openWindow('fxWin')">
+      <div class="icon-blob"><span class="icon-glyph">G</span></div>
+      <span>Games</span>
+    </div>
+
+    <div class="dock-item" onclick="openWindow('clockWin')">
+      <div class="icon-blob"><span class="icon-glyph">⏱</span></div>
+      <span>Clock</span>
+    </div>
+
+    <div class="dock-item" onclick="openWindow('calcWin')">
+      <div class="icon-blob"><span class="icon-glyph">≡</span></div>
+      <span>Calc</span>
+    </div>
+
+    <div class="dock-item" onclick="openWindow('termWin')">
+      <div class="icon-blob"><span class="icon-glyph">&gt;_</span></div>
+      <span>Terminal</span>
+    </div>
+
+    <div class="dock-item" onclick="openWindow('themeWin')">
+      <div class="icon-blob"><span class="icon-glyph">🎨</span></div>
+      <span>Themes</span>
+    </div>
+
+    <div class="dock-item" onclick="openWindow('notesWin')">
+      <div class="icon-blob"><span class="icon-glyph">✎</span></div>
+      <span>Notes</span>
+    </div>
+
+    <div class="dock-item" id="dockLaunch">
+      <div class="icon-blob"><span class="icon-glyph">⌘</span></div>
+      <span>Launch</span>
+    </div>
+  </div>
 <script>
 function openWindow(id) {
   const win = document.getElementById(id);
+  if (!win) return;
   win.style.display = "block";
   win.style.zIndex = Date.now();
   requestAnimationFrame(() => win.classList.add("open"));
@@ -599,15 +1056,15 @@ function initializeWindow(win) {
       win.style.left = win.dataset.originalLeft;
       win.style.top = win.dataset.originalTop;
     } else {
-      win.dataset.originalWidth = win.style.width;
-      win.dataset.originalHeight = win.style.height;
-      win.dataset.originalLeft = win.style.left;
-      win.dataset.originalTop = win.style.top;
+      win.dataset.originalWidth = win.style.width || win.offsetWidth + "px";
+      win.dataset.originalHeight = win.style.height || win.offsetHeight + "px";
+      win.dataset.originalLeft = win.style.left || win.offsetLeft + "px";
+      win.dataset.originalTop = win.style.top || win.offsetTop + "px";
       win.classList.add("maximized");
       win.style.left = "0";
-      win.style.top = "0";
+      win.style.top = "52px";
       win.style.width = "100vw";
-      win.style.height = "100vh";
+      win.style.height = "calc(100vh - 90px)";
     }
   };
 }
@@ -634,9 +1091,28 @@ function updateClocks() {
       day: 'numeric'
     });
   }
+
+  const lockTime = document.getElementById('lockTime');
+  const lockDate = document.getElementById('lockDate');
+  if (lockTime && lockDate) {
+    lockTime.textContent = `${h}:${m}`;
+    lockDate.textContent = now.toLocaleDateString(undefined, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  const widgetTime = document.getElementById('widgetTime');
+  if (widgetTime) {
+    widgetTime.textContent = `${h}:${m}:${s}`;
+  }
 }
 updateClocks();
 setInterval(updateClocks, 1000);
+
+/* Calculator */
 
 const calcDisplay = document.getElementById('calcDisplay');
 let calcBuffer = "0";
@@ -645,6 +1121,15 @@ let calcStored = null;
 
 function updateCalcDisplay() {
   calcDisplay.value = calcBuffer;
+}
+
+function evalCalc(a, b, op) {
+  if (op === "+") return a + b;
+  if (op === "-") return a - b;
+  if (op === "*") return a * b;
+  if (op === "/") return b === 0 ? 0 : a / b;
+  if (op === "%") return a % b;
+  return b;
 }
 
 function handleCalcKey(key) {
@@ -678,19 +1163,12 @@ function handleCalcKey(key) {
   updateCalcDisplay();
 }
 
-function evalCalc(a, b, op) {
-  if (op === "+") return a + b;
-  if (op === "-") return a - b;
-  if (op === "*") return a * b;
-  if (op === "/") return b === 0 ? 0 : a / b;
-  if (op === "%") return a % b;
-  return b;
-}
-
 document.querySelectorAll('.calc-btn').forEach(btn => {
   btn.addEventListener('click', () => handleCalcKey(btn.getAttribute('data-key')));
 });
 updateCalcDisplay();
+
+/* Terminal */
 
 const termOutput = document.getElementById('termOutput');
 const termInput = document.getElementById('termInput');
@@ -736,6 +1214,8 @@ termInput.addEventListener('keydown', e => {
   }
 });
 
+/* Themes */
+
 document.querySelectorAll('.theme-card').forEach(card => {
   card.addEventListener('click', () => {
     const theme = card.getAttribute('data-theme');
@@ -747,6 +1227,8 @@ document.querySelectorAll('.theme-card').forEach(card => {
 const savedTheme = localStorage.getItem("supernova_theme");
 if (savedTheme) document.body.className = savedTheme;
 
+/* Notes */
+
 const notesArea = document.getElementById('notesArea');
 const NOTES_KEY = "supernova_os_notes";
 
@@ -755,13 +1237,56 @@ if (savedNotes !== null) notesArea.value = savedNotes;
 
 notesArea.addEventListener('input', () => {
   localStorage.setItem(NOTES_KEY, notesArea.value);
+  const widgetNotes = document.getElementById('widgetNotes');
+  if (widgetNotes) {
+    const text = notesArea.value.trim();
+    widgetNotes.textContent = text ? (text.length > 80 ? text.slice(0,80) + "…" : text) : "No notes yet.";
+  }
 });
+
+const widgetNotes = document.getElementById('widgetNotes');
+if (widgetNotes && !savedNotes) {
+  widgetNotes.textContent = "No notes yet.";
+}
 
 document.getElementById("clearCacheBtn").onclick = () => {
   localStorage.removeItem("supernova_theme");
   localStorage.removeItem("supernova_os_notes");
+  localStorage.removeItem("supernova_game_favs");
   location.reload();
 };
+
+/* Widgets toggle */
+
+const widgetsPanel = document.getElementById('widgetsPanel');
+const widgetsToggle = document.getElementById('widgetsToggle');
+
+widgetsToggle.addEventListener('click', () => {
+  if (widgetsPanel.style.display === "flex") {
+    widgetsPanel.style.display = "none";
+  } else {
+    widgetsPanel.style.display = "flex";
+  }
+});
+
+/* Notifications */
+
+function pushNotification(title, body, timeout = 3500) {
+  const stack = document.getElementById('notificationStack');
+  const note = document.createElement('div');
+  note.className = "notification glass-surface";
+  note.innerHTML = `
+    <div class="notification-title">${title}</div>
+    <div class="notification-body">${body}</div>
+  `;
+  stack.appendChild(note);
+  requestAnimationFrame(() => note.classList.add("show"));
+  setTimeout(() => {
+    note.classList.remove("show");
+    setTimeout(() => note.remove(), 200);
+  }, timeout);
+}
+/***** Games + favorites *****/
 
 const GAMES = [
   { name: "1", emoji: "🧩", url: "https://3kh0isgood.github.io/projects/1/index.html" },
@@ -907,9 +1432,9 @@ function renderGamesGrid() {
   GAMES.forEach(game => {
     const card = document.createElement("div");
     card.style.padding = "10px";
-    card.style.borderRadius = "10px";
+    card.style.borderRadius = "14px";
     card.style.border = "1px solid rgba(255,255,255,0.08)";
-    card.style.background = "rgba(15,23,42,0.9)";
+    card.style.background = "radial-gradient(circle at 0% 0%, rgba(255,255,255,0.06), transparent 55%), rgba(15,23,42,0.9)";
     card.style.display = "flex";
     card.style.flexDirection = "column";
     card.style.gap = "6px";
@@ -972,7 +1497,7 @@ function renderGamesGrid() {
     play.textContent = "Play";
     play.style.marginTop = "4px";
     play.style.padding = "6px 8px";
-    play.style.borderRadius = "8px";
+    play.style.borderRadius = "10px";
     play.style.border = "1px solid rgba(255,255,255,0.12)";
     play.style.background = "rgba(37,99,235,0.9)";
     play.style.color = "white";
@@ -1011,7 +1536,94 @@ function openGameInsideWindow(game) {
 }
 
 renderGamesGrid();
+
+/***** Launcher behavior *****/
+
+const launcherOverlay = document.getElementById('launcherOverlay');
+const launchToggle = document.getElementById('launchToggle');
+const dockLaunch = document.getElementById('dockLaunch');
+
+function showLauncher() {
+  launcherOverlay.style.display = "flex";
+  document.getElementById('topbarCenterText').textContent = "Launchpad";
+}
+
+function hideLauncher() {
+  launcherOverlay.style.display = "none";
+  document.getElementById('topbarCenterText').textContent = "Desktop";
+}
+
+launchToggle.addEventListener('click', () => {
+  if (launcherOverlay.style.display === "flex") hideLauncher();
+  else showLauncher();
+});
+
+dockLaunch.addEventListener('click', () => {
+  if (launcherOverlay.style.display === "flex") hideLauncher();
+  else showLauncher();
+});
+
+launcherOverlay.addEventListener('click', (e) => {
+  if (e.target === launcherOverlay) hideLauncher();
+});
+
+document.getElementById('launcherGrid').addEventListener('click', (e) => {
+  const item = e.target.closest('.launcher-item');
+  if (!item) return;
+  const target = item.getAttribute('data-target');
+  hideLauncher();
+  openWindow(target);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === "Escape" && launcherOverlay.style.display === "flex") {
+    hideLauncher();
+  }
+});
+
+/***** Lock screen logic *****/
+
+const lockScreen = document.getElementById('lockScreen');
+const desktopRoot = document.getElementById('desktopRoot');
+const lockInput = document.getElementById('lockInput');
+const lockError = document.getElementById('lockError');
+const lockButton = document.getElementById('lockButton');
+
+function showLockScreen() {
+  lockScreen.style.display = "flex";
+  desktopRoot.style.display = "none";
+  lockInput.value = "";
+  lockError.textContent = "";
+  lockInput.focus();
+}
+
+function hideLockScreen() {
+  lockScreen.style.display = "none";
+  desktopRoot.style.display = "block";
+  pushNotification("Welcome back", "Supernova OS unlocked.");
+}
+
+lockInput.addEventListener('keydown', (e) => {
+  if (e.key === "Enter") {
+    if (lockInput.value === "supernova") {
+      hideLockScreen();
+    } else {
+      lockError.textContent = "Incorrect password.";
+      lockInput.select();
+    }
+  }
+});
+
+lockButton.addEventListener('click', () => {
+  showLockScreen();
+});
+
+window.addEventListener('load', () => {
+  showLockScreen();
+  pushNotification("Supernova OS", "Desktop ready.");
+});
 </script>
 
+</div> <!-- /desktopRoot -->
 </body>
 </html>
